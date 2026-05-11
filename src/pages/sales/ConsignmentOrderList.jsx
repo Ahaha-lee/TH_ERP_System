@@ -112,11 +112,6 @@ const ConsignmentOrderList = () => {
                 return text ? <Tag color={text === '审核通过' ? 'green' : 'red'}>{text}</Tag> : <span>-</span>;
             }
         },
-        {
-            title: '审核详情',
-            width: 120,
-            render: (_, record) => <Link onClick={() => setAuditDrawer({ open: true, record })}>查看审核详情</Link>
-        },
         { 
             title: '来料状态', 
             dataIndex: 'receiptStatus',

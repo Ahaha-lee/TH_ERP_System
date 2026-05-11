@@ -103,6 +103,8 @@ const DeliveryNotice = () => {
           displayVal = '已审批';
         }
 
+        if (displayVal === '已审批') displayVal = '已出库';
+
         const statusConfig = {
           '草稿': { color: 'default' },
           '待财务审批': { color: 'orange' },
@@ -219,7 +221,7 @@ const DeliveryNotice = () => {
           <Col span={6}>
             <div className="text-xs text-gray-500 mb-1">状态</div>
             <Select placeholder="选择状态" className="w-full" allowClear>
-              {['草稿', '待财务审批', '待仓库审批', '待出库', '已审批', '已出库'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
+              {['草稿', '待财务审批', '待仓库审批', '已出库'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
             </Select>
           </Col>
           <Col span={6}>
