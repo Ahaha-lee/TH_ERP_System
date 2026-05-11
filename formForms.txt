@@ -1,0 +1,74 @@
+src/components/sales/afterSales/ReplenishOrderFormModal.jsx:            <Form form={form} layout="vertical">
+src/components/sales/afterSales/ExchangeOrderFormModal.jsx:            <Form form={form} layout="vertical">
+src/components/sales/afterSales/ReturnOrderFormModal.jsx:            <Form form={form} layout="vertical">
+src/components/sales/ReturnFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/OrderSourceSelectModal.jsx:        <Form form={form} layout="inline" onFinish={handleSearch}>
+src/components/sales/AuditModal.jsx:            <div style={{ display: 'none' }}><Form form={form} /></div>
+src/components/sales/AuditModal.jsx:                <Form form={form} layout="vertical" initialValues={{ action: 'pass' }}>
+src/components/sales/ReplenishFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/trustee/TrusteeOrderFormModal.jsx:            <Form form={form} layout="vertical">
+src/components/sales/trustee/TrusteeClaimFlowModal.jsx:        <Form form={form} layout="inline" className="gap-y-4" onFinish={handleSearch}>
+src/components/sales/AfterSaleReplenishFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/QuotationSelectModal.jsx:      <Form form={form} layout="horizontal" onFinish={handleSearch} className="mb-4">
+src/components/sales/NormalOrderFormModal.jsx:            <Form form={form} layout="vertical">
+src/components/sales/FinanceAuditModal.jsx:            <div style={{ display: 'none' }}><Form form={form} /></div>
+src/components/sales/FinanceAuditModal.jsx:                <Form form={form} layout="vertical" initialValues={{ action: 'pass' }} style={{ marginTop: 24 }}>
+src/components/sales/ConsignmentFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/ExchangeFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/CustomerSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
+src/components/sales/WarehouseAuditModal.jsx:            <div style={{ display: 'none' }}><Form form={form} /></div>
+src/components/sales/WarehouseAuditModal.jsx:                <Form form={form} layout="vertical" initialValues={{ action: 'pass' }} style={{ marginTop: 24 }}>
+src/components/sales/AuditActionModal.jsx:            <Form form={form} layout="vertical" initialValues={{ action: 'pass' }}>
+src/components/sales/SalesOrderSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
+src/components/sales/DeliveryNoticeFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/AfterSaleReturnFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/sales/AfterSaleExchangeFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/inbound/ReturnInboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/inbound/ConsignmentInboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/inbound/SubcontractInboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/inbound/modals/PurchaseOrderSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4">
+src/components/inbound/modals/WorkOrderSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4">
+src/components/inbound/modals/AfterSaleOrderSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4">
+src/components/inbound/modals/ConsignmentOrderSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4">
+src/components/inbound/ProductionInboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/inbound/PurchaseInboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/outbound/modals/ApplyOrderSelectModal.jsx:      <Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+src/components/outbound/modals/DeliveryNoticeSelectModal.jsx:      <Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+src/components/outbound/modals/BatchSelectModal.jsx:      <Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+src/components/outbound/modals/PickApplySelectModal.jsx:      <Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+src/components/outbound/modals/SubcontractPurchaseSelectModal.jsx:      <Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+src/components/outbound/PickOutboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/outbound/OtherOutboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/outbound/SubcontractOutboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/outbound/SalesOutboundFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/QuotationFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/quotation/PropertySelectModal.jsx:      <Form form={form} layout="vertical">
+src/components/quotation/QuotationAuditModal.jsx:        <div style={{ display: 'none' }}><Form form={form} /></div>
+src/components/quotation/CustomerSelectModal.jsx:        <Form form={form} layout="inline" onFinish={handleSearch}>
+src/components/quotation/QuotationFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/inventory/StocktakingFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/warehouse/WarehouseFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/ClaimFlowModal.jsx:      <Form form={form} layout="inline" className="mb-4 gap-y-2" onFinish={handleSearch}>
+src/components/CustomerSelectModal.jsx:      <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
+src/components/label/LabelRuleFormModal.jsx:      <Form form={form} layout="vertical">
+src/components/CustomerDetailDrawer.jsx:       <div style={{ display: 'none' }}><Form form={form} /></div>
+src/components/CustomerDetailDrawer.jsx:            <Form form={form} layout="vertical" onFinish={handleAddFeedback}>
+src/pages/warehouse/WarehouseList.jsx:        <Form form={form} layout="inline">
+src/pages/sales/NormalOrderList.jsx:                <Form form={form} layout="horizontal" onFinish={handleSearch}>
+src/pages/sales/afterSales/ReplenishOrderList.jsx:            <Form form={form} onFinish={handleSearch} className="mb-4 bg-gray-50 p-4 rounded">
+src/pages/sales/afterSales/ExchangeOrderList.jsx:            <Form form={form} onFinish={handleSearch} className="mb-4 bg-gray-50 p-4 rounded">
+src/pages/sales/afterSales/ReturnOrderList.jsx:            <Form form={form} onFinish={handleSearch} className="mb-4 bg-gray-50 p-4 rounded">
+src/pages/sales/SalesOrderNormal.jsx:                <Form form={form} layout="inline" onFinish={handleSearch}>
+src/pages/sales/QuotationList.jsx:          <Form form={form} layout="inline" onFinish={handleSearch}>
+src/pages/sales/TrusteeOrderList.jsx:            <Form form={form} onFinish={handleSearch} className="mb-4 bg-white p-4 rounded shadow-sm">
+src/pages/sales/ConsignmentOrderList.jsx:                <Form form={form} onFinish={handleSearch} className="mb-4 bg-gray-50 p-4 rounded shadow-sm">
+src/pages/inventory/MaterialStockLedger.jsx:        <Form form={form} layout="inline">
+src/pages/inventory/StocktakingList.jsx:        <Form form={form} layout="inline">
+src/pages/CustomerManagement.jsx:        <Form form={form} layout="inline" onFinish={handleSearch} className="gap-y-2">
+src/pages/finance/ReceiptManagement.jsx:        <Form form={form} onFinish={handleSearch} layout="inline" className="mb-4 gap-y-4">
+src/pages/settings/LabelRule.jsx:        <Form form={form} layout="inline" onFinish={handleSearch}>
+src/pages/inbound/BatchManagement.jsx:        <Form form={form} layout="inline">
+src/pages/inbound/InboundOrderList.jsx:        <Form form={form} layout="inline">
+src/pages/outbound/OutboundOrderList.jsx:        <Form form={form} layout="inline">
+src/pages/RechargeLedger.jsx:        <Form form={form} layout="inline" onFinish={handleSearch} className="gap-y-2">
+src/pages/QuotationManagement.jsx:        <Form form={form} layout="inline" onFinish={handleSearch}>
