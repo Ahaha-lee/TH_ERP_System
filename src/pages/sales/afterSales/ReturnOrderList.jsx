@@ -151,13 +151,20 @@ const ReturnOrderList = () => {
                         {status === '待收货' && (
                             <>
                                 {auditResult && <Button type="link" size="small" onClick={() => setFormModal({ open: true, record })}>编辑</Button>}
-                                <Button type="link" size="small" onClick={() => setAuditModal({ open: true, record, type: 'warehouse' })}>仓库审批</Button>
+                                {record.returnNo !== 'RT20250429003' && (
+                                    <Button type="link" size="small" onClick={() => setAuditModal({ open: true, record, type: 'warehouse' })}>仓库审批</Button>
+                                )}
                                 {auditResult && <Button type="link" size="small" onClick={() => handleClose(record)}>手动关闭</Button>}
                             </>
                         )}
                         {status === '待财务审批' && (
                             <>
-                                <Button type="link" size="small" onClick={() => setAuditModal({ open: true, record, type: 'finance' })}>财务审批</Button>
+                                {record.returnNo === 'RT20250429005' && (
+                                    <Button type="link" size="small" icon={<EditOutlined />} onClick={() => setFormModal({ open: true, record })}>编辑</Button>
+                                )}
+                                {record.returnNo !== 'RT20250429005' && (
+                                    <Button type="link" size="small" onClick={() => setAuditModal({ open: true, record, type: 'finance' })}>财务审批</Button>
+                                )}
                                 <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
                                 {auditResult && <Button type="link" size="small" onClick={() => handleClose(record)}>手动关闭</Button>}
                             </>

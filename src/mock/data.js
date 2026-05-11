@@ -969,7 +969,7 @@ const initialState = {
       orderNo: 'OUT20250503006', 
       type: '委外出库', 
       warehouseName: '原材料仓库', 
-      status: '已审核', 
+      status: '待审核', 
       date: '2025-05-03', 
       partnerName: '联塑科技', 
       auditResult: '拒绝',

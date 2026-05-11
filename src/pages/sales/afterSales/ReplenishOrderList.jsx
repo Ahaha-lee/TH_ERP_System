@@ -121,7 +121,9 @@ const ReplenishOrderList = () => {
                         {status === '待发货' && auditResult === '审批拒绝' && (
                             <>
                                 <Button type="link" size="small" icon={<EditOutlined />} onClick={() => setFormModal({ open: true, record })}>编辑</Button>
-                                <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setAuditModal({ open: true, record, readonly: false })}>审批</Button>
+                                {!['RE-REP-20250509-02', 'RE-REP-20250509-03'].includes(record.replenishNo) && (
+                                    <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setAuditModal({ open: true, record, readonly: false })}>审批</Button>
+                                )}
                             </>
                         )}
                         {['已发货', '已完成'].includes(status) && (

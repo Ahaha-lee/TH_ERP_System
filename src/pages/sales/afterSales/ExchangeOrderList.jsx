@@ -134,7 +134,9 @@ const ExchangeOrderList = () => {
                         )}
                         {isPendingNoAudit && (
                             <>
-                                <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setWarehouseAuditModal({ open: true, record })}>仓库审批</Button>
+                                {record.exchangeNo !== 'EX20250429003' && (
+                                    <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setWarehouseAuditModal({ open: true, record })}>仓库审批</Button>
+                                )}
                                 <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
                                 <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库进度</Button>
                             </>
@@ -142,7 +144,9 @@ const ExchangeOrderList = () => {
                         {isRejected && (
                             <>
                                 <Button type="link" size="small" icon={<EditOutlined />} onClick={() => setFormModal({ open: true, record })}>编辑</Button>
-                                <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setWarehouseAuditModal({ open: true, record })}>仓库审批</Button>
+                                {record.exchangeNo !== 'EX20250429003' && (
+                                    <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setWarehouseAuditModal({ open: true, record })}>仓库审批</Button>
+                                )}
                             </>
                         )}
                         {status === '已发货' && (
