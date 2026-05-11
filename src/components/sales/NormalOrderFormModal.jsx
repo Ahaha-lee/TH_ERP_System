@@ -465,12 +465,12 @@ const NormalOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                         </Form.Item>
                     </Col>
                     <Col span={6}>
-                        <Form.Item name="isCollectDeposit" label="是否收取定金" valuePropName="checked">
+                        <Form.Item name="isCollectDeposit" label="是否收取订金" valuePropName="checked">
                             <Switch checkedChildren="是" unCheckedChildren="否" />
                         </Form.Item>
                     </Col>
                     <Col span={6}>
-                        <Form.Item name="depositRatio" label="定金比例">
+                        <Form.Item name="depositRatio" label="订金比例">
                             <InputNumber 
                                 min={0} 
                                 max={100} 
@@ -542,7 +542,7 @@ const NormalOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                             <div>客户优惠折扣率: <Tag color="blue">{totalSummaries.discountRate}%</Tag></div>
                             <div>折后产品总额: <Text strong>¥{totalSummaries.discountedProductTotal.toFixed(2)}</Text></div>
                             <div>优惠总额度: <Text type="secondary">¥{totalSummaries.totalSaving.toFixed(2)}</Text></div>
-                            <div>定金应收: <Text strong type="warning">¥{totalSummaries.depositReceivable.toFixed(2)}</Text></div>
+                            <div>订金应收: <Text strong type="warning">¥{totalSummaries.depositReceivable.toFixed(2)}</Text></div>
                             <div className="flex justify-end items-center">
                                 <span className="mr-2">其他费用:</span>
                                 <Form.Item name="otherFee" noStyle><InputNumber precision={2} style={{ width: 120 }} onChange={() => {}} /></Form.Item>

@@ -72,11 +72,11 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
         <Descriptions.Item label="客户类型">{quotation.customerType || '-'}</Descriptions.Item>
         <Descriptions.Item label="来源预估单号">{quotation.sourceEstimationNo || '-'}</Descriptions.Item>
         <Descriptions.Item label="报价标题" span={2}>{quotation.title || '-'}</Descriptions.Item>
-        <Descriptions.Item label="是否收取定金">{quotation.isDeposit ? '是' : '否'}</Descriptions.Item>
+        <Descriptions.Item label="是否收取订金">{quotation.isDeposit ? '是' : '否'}</Descriptions.Item>
         {quotation.isDeposit && (
           <>
-            <Descriptions.Item label="定金比例">{((quotation.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
-            <Descriptions.Item label="定金应收">
+            <Descriptions.Item label="订金比例">{((quotation.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
+            <Descriptions.Item label="订金应收">
               {formatCurrency(quotation.depositAmount || (quotation.totalAmount * (quotation.depositRate || 0)))}
             </Descriptions.Item>
           </>
@@ -114,10 +114,10 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
                 <Col span={10}><Title level={4} style={{ color: '#ff4d4f' }}>¥{(quotation.totalAmount || 0).toFixed(2)}</Title></Col>
               </Row>
               {quotation.isDeposit && (
-                <Row><Col span={14}><Text type="warning">定金应收:</Text></Col><Col span={10}><Text type="warning">¥{(quotation.depositAmount || (quotation.totalAmount * (quotation.depositRate || 0))).toFixed(2)}</Text></Col></Row>
+                <Row><Col span={14}><Text type="warning">订金应收:</Text></Col><Col span={10}><Text type="warning">¥{(quotation.depositAmount || (quotation.totalAmount * (quotation.depositRate || 0))).toFixed(2)}</Text></Col></Row>
               )}
               {quotation.depositAmount > 0 && (
-                <Row><Col span={14}><Text type="secondary">预收定金:</Text></Col><Col span={10}><Text type="secondary">¥{(quotation.depositAmount || 0).toFixed(2)}</Text></Col></Row>
+                <Row><Col span={14}><Text type="secondary">预收订金:</Text></Col><Col span={10}><Text type="secondary">¥{(quotation.depositAmount || 0).toFixed(2)}</Text></Col></Row>
               )}
             </Space>
           </div>

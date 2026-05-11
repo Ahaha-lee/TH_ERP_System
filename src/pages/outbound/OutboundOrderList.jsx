@@ -349,7 +349,7 @@ const OutboundOrderList = () => {
                 </Popconfirm>
               </>
             )}
-            {isPending && (
+            {isPending && record.orderNo !== 'OUT20250503006' && (
               <a onClick={(e) => { e.stopPropagation(); setAuditModalOpen({ open: true, record }); }}>审核</a>
             )}
             {isAuditedRejected && (
@@ -362,8 +362,12 @@ const OutboundOrderList = () => {
                       if (record.type === '委外出库') setSubModalOpen(true);
                       if (record.type === '其他出库') setOtherModalOpen(true);
                   }}>编辑</a>
-                  <Divider orientation="vertical" />
-                  <a onClick={(e) => { e.stopPropagation(); setAuditModalOpen({ open: true, record }); }}>审核</a>
+                  {record.orderNo !== 'OUT20250503006' && (
+                    <>
+                      <Divider orientation="vertical" />
+                      <a onClick={(e) => { e.stopPropagation(); setAuditModalOpen({ open: true, record }); }}>审核</a>
+                    </>
+                  )}
                 </>
             )}
           </Space>

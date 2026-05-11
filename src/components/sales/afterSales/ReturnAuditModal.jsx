@@ -204,7 +204,7 @@ const ReturnAuditModal = ({ open, record, onCancel, onSuccess, readonly }) => {
                         size="small"
                         bordered
                         pagination={false}
-                        dataSource={[
+                        dataSource={record.status === '草稿' ? [] : [
                             { 
                                 node: '提交申请', 
                                 operator: record.salesperson || '业务员', 

@@ -357,13 +357,13 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
             </Form.Item>
           </Col>
           <Col span={6}>
-            <Form.Item name="isDeposit" label="收定金" valuePropName="checked">
+            <Form.Item name="isDeposit" label="收订金" valuePropName="checked">
               <Switch onChange={setUseDeposit} />
             </Form.Item>
           </Col>
           {useDeposit && (
             <Col span={6}>
-              <Form.Item name="depositRate" label="定金比例(%)">
+              <Form.Item name="depositRate" label="订金比例(%)">
                 <InputNumber min={0} max={100} style={{ width: '100%' }} onChange={setDepositRate} />
               </Form.Item>
             </Col>
@@ -416,7 +416,7 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
                     <Col span={10}><Title level={4} style={{ color: '#ff4d4f' }}>¥{(calculations.totalAmount || 0).toFixed(2)}</Title></Col>
                 </Row>
                 {useDeposit && (
-                    <Row><Col span={14}><Text type="secondary">定金预收 ({(depositRate).toFixed(0)}%):</Text></Col><Col span={10}><Text type="secondary">¥{(calculations.depositAmount || 0).toFixed(2)}</Text></Col></Row>
+                    <Row><Col span={14}><Text type="secondary">订金预收 ({(depositRate).toFixed(0)}%):</Text></Col><Col span={10}><Text type="secondary">¥{(calculations.depositAmount || 0).toFixed(2)}</Text></Col></Row>
                 )}
               </Space>
             </div>

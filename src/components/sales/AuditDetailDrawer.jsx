@@ -23,7 +23,7 @@ const AuditDetailDrawer = ({ open, record, onClose }) => {
     const isDeliveryNotice = !!record.noticeNo;
 
     // Mock audit logs
-    const mockLogs = [
+    const mockLogs = record.status === '草稿' ? [] : [
         { key: '0', time: record.createdAt || '2025-04-28 09:00:00', operator: record.salesperson || '业务员', action: '创建单据', remark: '系统自动生成' },
         ...(record.status !== '草稿' ? [{ key: '1', time: record.createdAt || '2025-04-28 10:00:00', operator: record.salesperson || '业务员', action: '提交审批', remark: '申请发货' }] : []),
         ...(record.financeAuditResult ? [
@@ -242,7 +242,7 @@ const AuditDetailDrawer = ({ open, record, onClose }) => {
                         <Descriptions.Item label="客户">{record.customerName}</Descriptions.Item>
                         <Descriptions.Item label="订单日期">{record.orderDate || record.quotationDate || '-'}</Descriptions.Item>
                         {(record.isCollectDeposit || record.isDeposit) && (
-                            <Descriptions.Item label="定金应收">
+                            <Descriptions.Item label="订金应收">
                                 {formatCurrency(
                                     record.deposit || 
                                     record.depositAmount || 

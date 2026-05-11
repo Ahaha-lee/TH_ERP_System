@@ -327,11 +327,11 @@ const QuotationList = () => {
               </Descriptions.Item>
               <Descriptions.Item label="客户名称">{currentRecord.customerName}</Descriptions.Item>
               <Descriptions.Item label="业务员">{currentRecord.salesperson}</Descriptions.Item>
-              <Descriptions.Item label="是否收取定金">{currentRecord.isDeposit ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="是否收取订金">{currentRecord.isDeposit ? '是' : '否'}</Descriptions.Item>
               {currentRecord.isDeposit && (
                 <>
-                  <Descriptions.Item label="定金比例">{((currentRecord.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
-                  <Descriptions.Item label="定金应收">
+                  <Descriptions.Item label="订金比例">{((currentRecord.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
+                  <Descriptions.Item label="订金应收">
                     {`¥${(currentRecord.depositAmount || (currentRecord.totalAmount * (currentRecord.depositRate || 0))).toLocaleString()}`}
                   </Descriptions.Item>
                 </>

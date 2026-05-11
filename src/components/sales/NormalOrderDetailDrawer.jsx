@@ -65,9 +65,9 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
                         <Descriptions.Item label="订单日期">{activeRecord.orderDate}</Descriptions.Item>
                         <Descriptions.Item label="期望发货日期">{activeRecord.expectDeliveryDate || '-'}</Descriptions.Item>
                         <Descriptions.Item label="业务员">{activeRecord.salesperson}</Descriptions.Item>
-                        <Descriptions.Item label="是否收取定金">{activeRecord.isCollectDeposit ? <Tag color="green">是</Tag> : <Tag color="default">否</Tag>}</Descriptions.Item>
-                        <Descriptions.Item label="定金比例">{activeRecord.depositRatio ? `${activeRecord.depositRatio}%` : '0%'}</Descriptions.Item>
-                        <Descriptions.Item label="定金应收">
+                        <Descriptions.Item label="是否收取订金">{activeRecord.isCollectDeposit ? <Tag color="green">是</Tag> : <Tag color="default">否</Tag>}</Descriptions.Item>
+                        <Descriptions.Item label="订金比例">{activeRecord.depositRatio ? `${activeRecord.depositRatio}%` : '0%'}</Descriptions.Item>
+                        <Descriptions.Item label="订金应收">
                             {activeRecord.isCollectDeposit 
                                 ? formatCurrency(activeRecord.deposit || (activeRecord.totalAmount * (activeRecord.depositRatio / 100))) 
                                 : '-'}
@@ -123,7 +123,7 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
                         </Row>
                         {activeRecord.isCollectDeposit && (
                             <Row justify="end" className="text-orange-600">
-                                <Col span={4}>定金应收:</Col>
+                                <Col span={4}>订金应收:</Col>
                                 <Col span={4}>¥{(activeRecord.deposit || (activeRecord.totalAmount * (activeRecord.depositRatio / 100))).toFixed(2)}</Col>
                             </Row>
                         )}

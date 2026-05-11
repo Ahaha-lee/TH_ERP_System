@@ -99,8 +99,8 @@ const AuditModal = ({ open, record, onCancel, onSuccess, readonly }) => {
                             <Descriptions.Item label="期望发货日期">{record.expectDeliveryDate || '-'}</Descriptions.Item>
                             <Descriptions.Item label="项目">{record.subsidiary || '-'}</Descriptions.Item>
                             <Descriptions.Item label="业务员">{record.salesperson}</Descriptions.Item>
-                            <Descriptions.Item label="是否收取定金">{record.isCollectDeposit ? <Tag color="green">是</Tag> : <Tag color="default">否</Tag>}</Descriptions.Item>
-                            <Descriptions.Item label="定金比例">{record.depositRatio}%</Descriptions.Item>
+                            <Descriptions.Item label="是否收取订金">{record.isCollectDeposit ? <Tag color="green">是</Tag> : <Tag color="default">否</Tag>}</Descriptions.Item>
+                            <Descriptions.Item label="订金比例">{record.depositRatio}%</Descriptions.Item>
                             <Descriptions.Item label="纳入备货计划">{record.includeInStockingPlan ? <Tag color="blue">是</Tag> : <Tag color="default">否</Tag>}</Descriptions.Item>
                         </Descriptions>
 
@@ -155,7 +155,7 @@ const AuditModal = ({ open, record, onCancel, onSuccess, readonly }) => {
                                     <div>客户优惠折扣率: <Text type="secondary">{discountRate}%</Text></div>
                                     <div>折后产品总额: <Text strong>¥{discountedProductTotal.toFixed(2)}</Text></div>
                                     <div>优惠总额度: <Text type="secondary">¥{totalSaving.toFixed(2)}</Text></div>
-                                    <div>定金应收: <Text strong type="warning">¥{depositReceivable.toFixed(2)}</Text></div>
+                                    <div>订金应收: <Text strong type="warning">¥{depositReceivable.toFixed(2)}</Text></div>
                                     <div>其他费用: <Text strong>¥{otherFee.toFixed(2)}</Text></div>
                                     <Divider style={{ margin: '8px 0' }} />
                                     <div className="text-xl font-bold text-red-600">
@@ -191,7 +191,7 @@ const AuditModal = ({ open, record, onCancel, onSuccess, readonly }) => {
                             size="small"
                             bordered
                             pagination={false}
-                            dataSource={[
+                            dataSource={record.status === '草稿' ? [] : [
                                 { 
                                     node: '提交申请', 
                                     operator: record.salesperson || '业务员', 
