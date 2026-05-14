@@ -21,6 +21,8 @@ import QuotationList from './pages/sales/QuotationList';
 import NormalOrderList from './pages/sales/NormalOrderList';
 import AfterSaleOrder from './pages/sales/AfterSaleOrder';
 import ConsignmentOrderList from './pages/sales/ConsignmentOrderList';
+import SalesTargetPlan from './pages/sales/SalesTargetPlan';
+import SalesTargetStats from './pages/sales/SalesTargetStats';
 import DeliveryNotice from './pages/sales/DeliveryNotice';
 import EstimationOrder from './pages/sales/EstimationOrder';
 import SizePricingRule from './pages/settings/SizePricingRule';
@@ -47,6 +49,8 @@ const AppContent = () => {
                      location.pathname.startsWith('/sales-orders/normal') ? 'normal-order' :
                      location.pathname.startsWith('/sales/after-sale') ? 'after-sale' :
                      location.pathname.startsWith('/sales/consignment') ? 'consignment' :
+                     location.pathname.startsWith('/sales/target-plan') ? 'sales-target-plan' :
+                     location.pathname.startsWith('/sales/target-stats') ? 'sales-target-stats' :
                      location.pathname.startsWith('/estimation') ? 'estimation' :
                      location.pathname.startsWith('/size-pricing-rule') ? 'size-pricing-rule' :
                      location.pathname.startsWith('/inbound') ? 'inbound' :
@@ -140,6 +144,16 @@ const AppContent = () => {
                   label: <Link to="/sales/consignment">受托加工销售订单</Link>,
                 },
                 {
+                  key: 'sales-target-plan',
+                  icon: <FileTextOutlined />,
+                  label: <Link to="/sales/target-plan">销售年度目标计划表</Link>,
+                },
+                {
+                  key: 'sales-target-stats',
+                  icon: <FileTextOutlined />,
+                  label: <Link to="/sales/target-stats">销售目标完成统计表</Link>,
+                },
+                {
                   key: 'recharge-ledger',
                   icon: <AccountBookOutlined />,
                   label: <Link to="/recharge-ledger">充值订单台账</Link>,
@@ -191,6 +205,8 @@ const AppContent = () => {
              selectedKey === 'normal-order' ? '普通销售订单' :
              selectedKey === 'after-sale' ? '售后销售订单' :
              selectedKey === 'consignment' ? '受托加工销售订单' :
+             selectedKey === 'sales-target-plan' ? '销售年度目标计划表' :
+             selectedKey === 'sales-target-stats' ? '销售目标完成统计表' :
              selectedKey === 'estimation' ? '报价预估' :
              selectedKey === 'size-pricing-rule' ? '阶梯式计价规则' :
              selectedKey === 'inbound' ? '入库管理' :
@@ -219,6 +235,8 @@ const AppContent = () => {
               <Route path="/sales-orders/normal" element={<NormalOrderList />} />
               <Route path="/sales/after-sale" element={<AfterSaleOrder />} />
               <Route path="/sales/consignment" element={<ConsignmentOrderList />} />
+              <Route path="/sales/target-plan" element={<SalesTargetPlan />} />
+              <Route path="/sales/target-stats" element={<SalesTargetStats />} />
               <Route path="/estimation" element={<EstimationOrder />} />
               <Route path="/size-pricing-rule" element={<SizePricingRule />} />
               <Route path="/inbound" element={<InboundOrderList />} />

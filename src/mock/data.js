@@ -1362,6 +1362,105 @@ const initialState = {
         { id: 'spoi2', productCode: 'PROD001', productName: '皮沙发', spec: '真皮/咖啡色', unit: '个', quantity: 200, receivedQty: 0, price: 15.0 }
       ]
     }
+  ],
+  salesTargetPlans: [
+    {
+      id: 'stp1',
+      projectName: '华南区域年度计划',
+      year: 2025,
+      annualTarget: 12000000,
+      monthlyAverageTarget: 1000000,
+      monthlyTargets: [1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000]
+    },
+    {
+      id: 'stp2',
+      projectName: '西北区域深度拓展',
+      year: 2025,
+      annualTarget: 6000000,
+      monthlyAverageTarget: 500000,
+      monthlyTargets: [500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000]
+    },
+    {
+      id: 'stp3',
+      projectName: '华南区域年度计划',
+      year: 2026,
+      annualTarget: 15000000,
+      monthlyAverageTarget: 1250000,
+      monthlyTargets: [1250000, 1250000, 1250000, 1250000, 1250000, 1250000, 1250000, 1250000, 1250000, 1250000, 1250000, 1250000]
+    }
+  ],
+  salesTargetStats: [
+    {
+      id: 'sts1',
+      projectName: '华南区域年度计划',
+      salespersonName: '张经理',
+      dailyOrderAmount: 15000,
+      dailyDeliveryAmount: 12000,
+      monthlyOrderAmount: 450000,
+      monthlyDeliveryAmount: 400000,
+      annualOrderAmount: 3200000,
+      history: [
+        { id: 'h202605_1', date: '2026-05-14', orderAmount: 25000, deliveryAmount: 22000 },
+        { id: 'h202605_2', date: '2026-05-13', orderAmount: 18000, deliveryAmount: 15000 },
+        { id: 'h202605_3', date: '2026-05-12', orderAmount: 32000, deliveryAmount: 28000 },
+        { id: 'h202605_4', date: '2026-05-11', orderAmount: 15000, deliveryAmount: 12000 },
+        { id: 'h202605_5', date: '2026-05-10', orderAmount: 45000, deliveryAmount: 40000 },
+        { id: 'h202605_6', date: '2026-05-09', orderAmount: 21000, deliveryAmount: 18000 },
+        { id: 'h202605_7', date: '2026-05-08', orderAmount: 28000, deliveryAmount: 25000 },
+        { id: 'h202605_8', date: '2026-05-07', orderAmount: 35000, deliveryAmount: 30000 },
+        { id: 'h202605_9', date: '2026-05-06', orderAmount: 12000, deliveryAmount: 10000 },
+        { id: 'h202605_10', date: '2026-05-05', orderAmount: 50000, deliveryAmount: 45000 },
+        { id: 'h1', date: '2025-05-12', orderAmount: 15000, deliveryAmount: 12000 },
+        { id: 'h2', date: '2025-05-11', orderAmount: 20000, deliveryAmount: 18000 },
+        { id: 'h3', date: '2025-05-10', orderAmount: 18000, deliveryAmount: 15000 },
+      ],
+      monthlyHistory: [
+        { id: 'mh1', year: 2025, month: 1, orderAmount: 380000, deliveryAmount: 350000 },
+        { id: 'mh2', year: 2025, month: 2, orderAmount: 420000, deliveryAmount: 400000 },
+        { id: 'mh3', year: 2025, month: 3, orderAmount: 510000, deliveryAmount: 480000 },
+        { id: 'mh4', year: 2025, month: 4, orderAmount: 460000, deliveryAmount: 430000 },
+      ]
+    },
+    {
+      id: 'sts2',
+      projectName: '华南区域年度计划',
+      salespersonName: '管理员',
+      dailyOrderAmount: 8000,
+      dailyDeliveryAmount: 5000,
+      monthlyOrderAmount: 220000,
+      monthlyDeliveryAmount: 180000,
+      annualOrderAmount: 1500000,
+      history: [
+        { id: 'h4', date: '2025-05-12', orderAmount: 8000, deliveryAmount: 5000 },
+        { id: 'h5', date: '2025-05-11', orderAmount: 12000, deliveryAmount: 10000 },
+      ],
+      monthlyHistory: [
+        { id: 'mh5', year: 2025, month: 1, orderAmount: 150000, deliveryAmount: 130000 },
+        { id: 'mh6', year: 2025, month: 2, orderAmount: 180000, deliveryAmount: 160000 },
+        { id: 'mh7', year: 2025, month: 3, orderAmount: 210000, deliveryAmount: 190000 },
+        { id: 'mh8', year: 2025, month: 4, orderAmount: 200000, deliveryAmount: 180000 },
+      ]
+    },
+    {
+      id: 'sts3',
+      projectName: '西北区域深度拓展',
+      salespersonName: '李销售',
+      dailyOrderAmount: 25000,
+      dailyDeliveryAmount: 20000,
+      monthlyOrderAmount: 680000,
+      monthlyDeliveryAmount: 600000,
+      annualOrderAmount: 4200000,
+      history: [
+        { id: 'h6', date: '2025-05-12', orderAmount: 25000, deliveryAmount: 20000 },
+        { id: 'h7', date: '2025-05-11', orderAmount: 30000, deliveryAmount: 25000 },
+      ],
+      monthlyHistory: [
+        { id: 'mh9', year: 2025, month: 1, orderAmount: 600000, deliveryAmount: 550000 },
+        { id: 'mh10', year: 2025, month: 2, orderAmount: 650000, deliveryAmount: 580000 },
+        { id: 'mh11', year: 2025, month: 3, orderAmount: 720000, deliveryAmount: 650000 },
+        { id: 'mh12', year: 2025, month: 4, orderAmount: 680000, deliveryAmount: 620000 },
+      ]
+    }
   ]
 };
 
