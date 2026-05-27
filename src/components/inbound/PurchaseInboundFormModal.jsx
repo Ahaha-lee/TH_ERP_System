@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Row, Col, Input, Select, Button, Table, Space, InputNumber, Typography, message } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Modal, Form, Row, Col, Input, Select, Button, Table, Space, InputNumber, Typography, message, Upload } from 'antd';
+import { SearchOutlined, InboxOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import PurchaseOrderSelectModal from './modals/PurchaseOrderSelectModal';
 import { warehouses } from '../../mock';
@@ -17,15 +17,35 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
   useEffect(() => {
     if (open) {
       if (initialValues) {
+        const initialImages = initialValues.images ? initialValues.images.map((url, index) => ({
+          uid: `-img-${index}`,
+          name: `voucher-${index + 1}.png`,
+          status: 'done',
+          url: url,
+          thumbUrl: url
+        })) : [];
         form.setFieldsValue({
           ...initialValues,
-          inboundDate: dayjs(initialValues.inboundDate)
+          batchNo: initialValues.batchNo || 'B20250425PD001',
+          inboundDate: dayjs(initialValues.inboundDate),
+          image: initialImages
         });
-        setItems(initialValues.items.map((it, idx) => ({ ...it, id: idx, remainQty: it.quantity }))); // Simplified for edit
-      } else { form.setFieldsValue({ inboundNo: `IN-${dayjs().format("YYYYMMDD")}`,
+        setItems(initialValues.items.map((it, idx) => ({
+          ...it,
+          id: idx,
+          orderQty: it.orderQty !== undefined ? it.orderQty : (it.quantity + (it.receivedQty || 0)),
+          receivedQty: it.receivedQty !== undefined ? it.receivedQty : 0,
+          remainQty: it.remainQty !== undefined ? it.remainQty : it.quantity,
+          model: it.model || 'M-2026'
+        }))); // Simplified for edit
+      } else { 
+        form.setFieldsValue({ 
+          inboundNo: `IN-${dayjs().format("YYYYMMDD")}`,
           type: '采购入库',
           inboundDate: dayjs(),
-          operator: '管理员'
+          operator: '管理员',
+          batchNo: `B-${dayjs().format('YYYYMMDD')}-${Math.floor(Math.random() * 1000)}`,
+          image: []
         });
         setItems([]);
       }
@@ -42,9 +62,12 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
       productCode: it.productCode,
       productName: it.productName,
       spec: it.spec,
+      model: it.model || (it.productCode === 'MAT001' ? 'M-Oak-20' : it.productCode === 'MAT002' ? 'M-Ply-18' : it.productCode === 'ACC001' ? 'M-Hinge-110' : 'M-2026'),
       unit: it.unit,
       purchasePrice: it.price,
       price: it.price,
+      orderQty: it.quantity,
+      receivedQty: it.receivedQty || 0,
       remainQty: it.quantity - (it.receivedQty || 0),
       quantity: it.quantity - (it.receivedQty || 0),
       warehouseName: '原材料仓库',
@@ -59,8 +82,11 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
     { title: '物料编码', dataIndex: 'productCode', width: 120 },
     { title: '物料名称', dataIndex: 'productName', width: 150, ellipsis: true },
     { title: '规格', dataIndex: 'spec', width: 120, ellipsis: true },
+    { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
     { title: '单位', dataIndex: 'unit', width: 60 },
-    { title: '待入库', dataIndex: 'remainQty', width: 90, align: 'right' },
+    { title: '订单数量', dataIndex: 'orderQty', width: 90, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.quantity + (r.receivedQty || 0) || '-') },
+    { title: '已入库数量', dataIndex: 'receivedQty', width: 100, align: 'right', render: (v) => v !== undefined && v !== null ? v : '-' },
+    { title: '待入库数量', dataIndex: 'remainQty', width: 100, align: 'right' },
     { 
       title: '本次入库', 
       dataIndex: 'quantity', 
@@ -141,7 +167,35 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
         message.error('请添加物料明细');
         return;
       }
-      onSave({ ...values, status, items, inboundDate: values.inboundDate.format('YYYY-MM-DD') });
+      
+      const fileList = values.image || [];
+      const promises = fileList.map(file => {
+        if (file.url) {
+          return Promise.resolve(file.url);
+        }
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            resolve(e.target.result);
+          };
+          if (file.originFileObj) {
+            reader.readAsDataURL(file.originFileObj);
+          } else {
+            resolve('https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400&q=80');
+          }
+        });
+      });
+
+      Promise.all(promises).then(imageUrls => {
+        const { image, ...restValues } = values;
+        onSave({ 
+          ...restValues, 
+          status, 
+          items, 
+          images: imageUrls,
+          inboundDate: values.inboundDate.format('YYYY-MM-DD') 
+        });
+      });
     });
   };
 
@@ -196,10 +250,44 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
               <Input disabled value={dayjs().format('YYYY-MM-DD')} />
             </Form.Item>
           </Col>
-          <Col span={12}></Col>
+          <Col span={12}>
+            <Form.Item name="batchNo" label="批次号" rules={[{ required: true, message: '请输入或生成批次号' }]}>
+              <Input placeholder="请输入批次号" />
+            </Form.Item>
+          </Col>
           <Col span={24}>
-            <Form.Item name="remark" label="备注" className="mb-0">
+            <Form.Item name="remark" label="备注" className="mb-3">
               <TextArea rows={2} placeholder="请输入备注信息" />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item 
+              name="image" 
+              label="凭证/图片上传" 
+              valuePropName="fileList"
+              getValueFromEvent={(e) => {
+                if (Array.isArray(e)) return e;
+                return e?.fileList || [];
+              }}
+              rules={[{ required: true, message: '请上传凭证或实物图片' }]}
+              className="mb-0"
+            >
+              <Upload.Dragger 
+                name="files" 
+                maxCount={5} 
+                multiple
+                accept="image/*" 
+                listType="picture" 
+                beforeUpload={() => false}
+              >
+                <div className="py-4">
+                  <p className="ant-upload-drag-icon text-center mb-1">
+                    <InboxOutlined className="text-3xl text-blue-500" />
+                  </p>
+                  <p className="ant-upload-text text-sm font-semibold text-slate-700">点击选择或将图片拖放至此处</p>
+                  <p className="ant-upload-hint text-xs text-slate-400 mt-1">支持上传最多 5 张图片（必需字段）</p>
+                </div>
+              </Upload.Dragger>
             </Form.Item>
           </Col>
         </Row>

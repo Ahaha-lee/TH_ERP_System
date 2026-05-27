@@ -11,6 +11,32 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
         return mockAuditRecords[record.id] || [];
     }, [record]);
 
+    const calculations = useMemo(() => {
+        if (!record) return { productTotal: 0, discountedTotal: 0, totalSaving: 0, taxedProductTotal: 0, orderTotal: 0, rateVal: 0.13 };
+        const items = record.items || [];
+        const productTotal = items.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
+        const discountedTotal = productTotal * 0.95; // 5% discount
+        const totalSaving = productTotal - discountedTotal;
+
+        const activeTaxRateStr = record.taxRate ?? 13;
+        const clean = String(activeTaxRateStr).replace('%', '').trim();
+        const num = parseFloat(clean);
+        const rateVal = isNaN(num) ? 0.13 : (num > 1 ? num / 100 : num);
+
+        const taxedProductTotal = discountedTotal * (1 + rateVal);
+        const otherFee = record.otherFee ?? record.otherFees ?? 0;
+        const orderTotal = taxedProductTotal + otherFee;
+
+        return {
+            productTotal,
+            discountedTotal,
+            totalSaving,
+            taxedProductTotal,
+            orderTotal,
+            rateVal
+        };
+    }, [record]);
+
     if (!record) return null;
 
     const auditColumns = [
@@ -40,10 +66,21 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
                     <Descriptions bordered size="small" column={3}>
                         <Descriptions.Item label="受托订单号">{record.orderNo}</Descriptions.Item>
                         <Descriptions.Item label="来源报价单">{record.quotationNo || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="角色状态"><Tag color="blue">{record.status}</Tag></Descriptions.Item>
+                        <Descriptions.Item label="订单状态"><Tag color="blue">{record.status}</Tag></Descriptions.Item>
                         <Descriptions.Item label="客户">{typeof record.customerName === 'object' ? record.customerName?.name : record.customerName}</Descriptions.Item>
                         <Descriptions.Item label="订单日期">{record.orderDate}</Descriptions.Item>
                         <Descriptions.Item label="业务员">{typeof record.salesperson === 'object' ? record.salesperson?.name : record.salesperson}</Descriptions.Item>
+                        <Descriptions.Item label="紧急程度">
+                            <Tag color={(record.urgency === '紧急' || record.isUrgent) ? 'error' : 'default'}>
+                                {record.urgency || (record.isUrgent ? '紧急' : '一般')}
+                            </Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="收款状态">
+                            <Tag color={record.paymentStatus === '已结清' ? 'green' : 'red'}>{record.paymentStatus || '未结清'}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="来料状态">
+                            <Tag color={record.receiptStatus === '已收来料' ? 'green' : 'orange'}>{record.receiptStatus || '待收来料'}</Tag>
+                        </Descriptions.Item>
                         <Descriptions.Item label="生产备注" span={3}>{record.productionRemark || '-'}</Descriptions.Item>
                         <Descriptions.Item label="客户备注" span={3}>{record.customerRemark || '-'}</Descriptions.Item>
                     </Descriptions>
@@ -65,21 +102,48 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
                         rowKey="id"
                         size="small" pagination={false} dataSource={record.items || []}
                         columns={[
+                            { title: '产品编码', dataIndex: 'productCode', render: (v, r) => v || r.code || 'PROD-S01' },
                             { title: '产品名称', dataIndex: 'productName' },
-                            { title: '加工备注', dataIndex: 'processRemark' },
-                            { title: '加工数量', dataIndex: 'quantity' },
-                            { title: '折后最终价', dataIndex: 'unitPrice', render: (v) => `¥${(v || 0).toFixed(2)}` },
-                            { title: '金额', dataIndex: 'amount', render: (v) => <Text strong>¥{(v || 0).toFixed(2)}</Text> },
+                            { title: '加工备注', dataIndex: 'processRemark', render: (v, r) => v || r.remark || '-' },
+                            { title: '加工单价', dataIndex: 'standardPrice', render: (v, rec) => {
+                                const std = v || rec.price || (rec.unitPrice ? rec.unitPrice / 0.95 : 100);
+                                return `¥${std.toFixed(2)}`;
+                            } },
+                            { title: '优惠折扣率', dataIndex: 'discountRate', render: (v) => `${v ?? 5}%` },
+                            { title: '折后加工单价', dataIndex: 'unitPrice', render: (v, rec) => {
+                                const up = v || (rec.standardPrice || rec.price || 100) * (1 - (rec.discountRate ?? 5) / 100);
+                                return `¥${up.toFixed(2)}`;
+                            } },
+                            { title: '加工数量', dataIndex: 'quantity', render: (v) => v ?? 10 },
+                            { title: '标准总金额', render: (_, rec) => {
+                                const stdPrice = rec.standardPrice || rec.price || (rec.unitPrice ? rec.unitPrice / 0.95 : 100);
+                                const qty = rec.quantity ?? 10;
+                                return `¥${(stdPrice * qty).toFixed(2)}`;
+                            } },
+                            { title: '折后总金额（含税）', render: (_, rec) => {
+                                const up = rec.unitPrice || (rec.standardPrice || rec.price || 100) * (1 - (rec.discountRate ?? 5) / 100);
+                                const qty = rec.quantity ?? 10;
+                                const taxed = (up * qty) * (1 + calculations.rateVal);
+                                return <Text strong style={{ color: '#d97706' }} className="font-mono">¥{taxed.toFixed(2)}</Text>;
+                            } },
+                            { title: '折后总金额（不含税）', render: (_, rec) => {
+                                const up = rec.unitPrice || (rec.standardPrice || rec.price || 100) * (1 - (rec.discountRate ?? 5) / 100);
+                                const qty = rec.quantity ?? 10;
+                                return <Text strong className="font-mono">¥{(up * qty).toFixed(2)}</Text>;
+                            } }
                         ]}
                     />
 
                     <Divider titlePlacement="left">费用汇总</Divider>
                     <div className="bg-gray-50 p-4 rounded text-right space-y-2">
-                        <Row justify="end"><Col span={4}>加工费总计:</Col><Col span={4}>¥{(record.totalAmount || 0).toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={4}>加工费总计:</Col><Col span={4}>¥{calculations.productTotal.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={4}>折后加工费:</Col><Col span={4}>¥{calculations.discountedTotal.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={4}>优惠总金额:</Col><Col span={4}>¥{calculations.totalSaving.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={4} className="font-semibold text-gray-800">订单含税总额:</Col><Col span={4} className="font-semibold text-gray-800 font-mono">¥{calculations.taxedProductTotal.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={4}>其他费用:</Col><Col span={4}>¥{(record.otherFee || record.otherFees || 0).toFixed(2)}</Col></Row>
                         <Row justify="end" className="text-xl font-bold text-red-600">
-                            <Col span={4}>订单总额:</Col><Col span={4}>¥{(record.totalAmount || 0).toFixed(2)}</Col>
+                            <Col span={4}>订单总额:</Col><Col span={4}>¥{calculations.orderTotal.toFixed(2)}</Col>
                         </Row>
-                        <Row justify="end"><Col span={4}>收款状态:</Col><Col span={4}><Tag color={record.paymentStatus === '已结清' ? 'green' : 'red'}>{record.paymentStatus}</Tag></Col></Row>
                     </div>
                 </div>
             )
@@ -230,6 +294,7 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
                 <Space>
                     {`受托加工订单详情 - ${record.orderNo}`}
                     <Tag>{record.status}</Tag>
+                    {(record.urgency === '紧急' || record.isUrgent) && <Tag color="red">加急单</Tag>}
                 </Space>
             } 
             open={open} 

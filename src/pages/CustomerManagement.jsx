@@ -123,7 +123,12 @@ const CustomerManagement = () => {
       dataIndex: 'type',
     },
     {
-      title: '客户行政区划',
+      title: '客户等级',
+      dataIndex: 'level',
+      render: (level) => level || '-',
+    },
+    {
+      title: '客户区域',
       dataIndex: 'region',
       render: (region) => region ? (Array.isArray(region) ? region.join('/') : region) : '-',
     },

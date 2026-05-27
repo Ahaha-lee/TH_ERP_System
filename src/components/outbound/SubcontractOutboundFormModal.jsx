@@ -18,7 +18,7 @@ import {
 import { SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import SubcontractPurchaseSelectModal from './modals/SubcontractPurchaseSelectModal';
-import { warehouses } from '../../mock';
+import { warehouses, batches } from '../../mock';
 
 const { TextArea } = Input;
 
@@ -58,6 +58,7 @@ const SubcontractOutboundFormModal = ({ open, onCancel, onSave, editingRecord })
       applyQty: item.totalQty,
       outboundQty: item.totalQty,
       warehouseName: '',
+      batchNo: item.batchNo || 'B20250425PD001',
       location: '',
       remark: ''
     }));
@@ -126,6 +127,25 @@ const SubcontractOutboundFormModal = ({ open, onCancel, onSave, editingRecord })
           status={!val ? 'error' : ''}
         >
           {warehouses.map(w => <Select.Option key={w.name} value={w.name}>{w.name}</Select.Option>)}
+        </Select>
+      )
+    },
+    { 
+      title: '批次号', 
+      dataIndex: 'batchNo', 
+      width: 170,
+      render: (val, record, i) => (
+        <Select 
+          value={val} 
+          onChange={(v) => updateItem(i, 'batchNo', v)} 
+          placeholder="请选择"
+          style={{ width: '100%' }}
+          allowClear
+          showSearch
+        >
+          {batches.map(b => (
+            <Select.Option key={b.id || b.batchNo} value={b.batchNo}>{b.batchNo}</Select.Option>
+          ))}
         </Select>
       )
     },

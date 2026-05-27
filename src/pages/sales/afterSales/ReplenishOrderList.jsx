@@ -48,6 +48,9 @@ const ReplenishOrderList = () => {
         setTimeout(() => {
             let filtered = [...allData];
             if (values.replenishNo) filtered = filtered.filter(item => item.replenishNo.includes(values.replenishNo));
+            if (values.orderNo) filtered = filtered.filter(item => item.orderNo && item.orderNo.includes(values.orderNo));
+            if (values.customerName) filtered = filtered.filter(item => item.customerName && item.customerName.includes(values.customerName));
+            if (values.status) filtered = filtered.filter(item => item.status === values.status);
             setDisplayData(filtered);
             setLoading(false);
         }, 500);
@@ -64,15 +67,38 @@ const ReplenishOrderList = () => {
         });
     };
 
+    const handleConfirmOutbound = (record) => {
+        Modal.confirm({
+            title: '确认出库',
+            content: '确定该补货单下所有产品已完成备货并进行出库吗？',
+            onOk: () => {
+                mockData.upsert('replenishments', {
+                    ...record,
+                    status: '已发货'
+                });
+                message.success('已确认全部产品备货并执行出库，订单状态更新为已发货');
+            }
+        });
+    };
+
     const columns = [
         { title: '序号', width: 60, render: (_, __, i) => i + 1 },
         { 
-            title: '售后订单号', 
+            title: '补货单号', 
             dataIndex: 'replenishNo', 
             render: (text, record) => <Link onClick={() => setDetailDrawer({ open: true, record })}>{text}</Link> 
         },
         { title: '售后类型', render: () => '补货' },
         { title: '审批详情', render: (_, record) => <Link onClick={() => setAuditModal({ open: true, record, readonly: true })}>查看审批详情</Link> },
+        { 
+            title: '紧急程度', 
+            dataIndex: 'urgency', 
+            width: 120,
+            render: (val, record) => {
+                const value = val || (record.isUrgent ? '紧急' : '一般');
+                return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+            }
+        },
         { 
             title: '原销售订单号', 
             dataIndex: 'orderNo', 
@@ -97,7 +123,7 @@ const ReplenishOrderList = () => {
             key: 'status',
             render: (_, record) => {
                 const { status, auditResult } = record;
-                const colors = { '草稿': 'default', '待发货': 'orange', '已发货': 'blue', '已完成': 'green' };
+                const colors = { '草稿': 'default', '待发货': 'orange', '备货中': 'purple', '已发货': 'blue', '已完成': 'green' };
                 if (status === '待发货' && auditResult === '审批拒绝') {
                     return <Tag color="error">待发货</Tag>;
                 }
@@ -107,7 +133,7 @@ const ReplenishOrderList = () => {
         { 
             title: '操作', 
             fixed: 'right', 
-            width: 180,
+            width: 250,
             render: (_, record) => {
                 const { status, auditResult } = record;
                 return (
@@ -118,16 +144,21 @@ const ReplenishOrderList = () => {
                                 <Button type="link" danger size="small" icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>删除</Button>
                             </>
                         )}
-                        {status === '待发货' && auditResult === '审批拒绝' && (
+                        {status === '待发货' && (auditResult === '审批拒绝' || !auditResult) && (
                             <>
                                 <Button type="link" size="small" icon={<EditOutlined />} onClick={() => setFormModal({ open: true, record })}>编辑</Button>
-                                {!['RE-REP-20250509-02', 'RE-REP-20250509-03'].includes(record.replenishNo) && (
-                                    <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setAuditModal({ open: true, record, readonly: false })}>审批</Button>
+                                {record.replenishNo !== 'RE-REP-20250509-02' && record.replenishNo !== 'RE-REP-20250509-03' && (
+                                    <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setAuditModal({ open: true, record, readonly: false })}>仓库审批</Button>
                                 )}
                             </>
                         )}
+                        {status === '备货中' && (
+                            <>
+                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看出库状态</Button>
+                            </>
+                        )}
                         {['已发货', '已完成'].includes(status) && (
-                            <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
+                            <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看出库状态</Button>
                         )}
                     </Space>
                 );
@@ -145,7 +176,7 @@ const ReplenishOrderList = () => {
                     <Col span={6}>
                         <Form.Item name="status" label="补货状态">
                             <Select placeholder="选择状态" allowClear>
-                                {['草稿', '待发货', '已发货', '已完成'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
+                                {['草稿', '待发货', '备货中', '已发货', '已完成'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
                             </Select>
                         </Form.Item>
                     </Col>
@@ -186,7 +217,7 @@ const ReplenishOrderList = () => {
                 readonly={auditModal.readonly}
                 onCancel={() => setAuditModal({ open: false, record: null, readonly: false })}
                 onSuccess={(audited) => {
-                    mockData.upsert('replenishments', { ...audited, status: audited.auditResult === '审批通过' ? '待发货' : audited.status });
+                    mockData.upsert('replenishments', { ...audited, status: audited.auditResult === '审批通过' ? '备货中' : audited.status });
                     setAuditModal({ open: false, record: null, readonly: false });
                 }}
             />

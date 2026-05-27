@@ -81,7 +81,9 @@ const InboundAuditModal = ({ open, record, onCancel, onSuccess }) => {
                 relOrderLabel = '关联采购单号';
                 partnerLabel = '供应商名称';
                 extraQtyColumns = [
-                    { title: '待入库', dataIndex: 'pendingQty', width: 100, align: 'right' },
+                    { title: '订单数量', dataIndex: 'orderQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.quantity + (r.receivedQty || r.finishedQty || 0)) },
+                    { title: '已入库数量', dataIndex: 'receivedQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.receivedQty !== undefined ? r.receivedQty : (r.finishedQty || 0)) },
+                    { title: '待入库数量', dataIndex: 'remainQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.pendingQty !== undefined ? r.pendingQty : (r.remainQty || '-')) },
                 ];
                 qtyLabel = '本次入库';
                 hasPrice = true;
@@ -99,16 +101,43 @@ const InboundAuditModal = ({ open, record, onCancel, onSuccess }) => {
                 relOrderLabel = '关联受托销售单号';
                 partnerLabel = '客户名称';
                 extraQtyColumns = [
-                    { title: '销售单数量', dataIndex: 'orderQty', width: 100, align: 'right' },
+                    { title: '订单数量', dataIndex: 'orderQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.quantity + (r.receivedQty || 0)) },
+                    { title: '已入库数量', dataIndex: 'receivedQty', width: 100, align: 'right', render: (v) => v !== undefined && v !== null ? v : 0 },
+                    { title: '待入库数量', dataIndex: 'remainQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : ((r.orderQty || r.quantity) - (r.receivedQty || 0)) },
                 ];
-                qtyLabel = '本次入库';
+                qtyLabel = '本次入库数量';
                 break;
             case '委外入库':
                 relOrderLabel = '关联委外采购号';
                 partnerLabel = '供应商名称';
                 extraQtyColumns = [
-                    { title: '委外数量', dataIndex: 'processQty', width: 100, align: 'right' },
-                    { title: '已入库', dataIndex: 'finishedQty', width: 100, align: 'right' },
+                    { 
+                        title: '委外数量', 
+                        dataIndex: 'orderQty', 
+                        width: 100, 
+                        align: 'right', 
+                        render: (v, r) => v !== undefined && v !== null ? v : (r.processQty !== undefined ? r.processQty : (r.quantity + (r.receivedQty || r.finishedQty || 0))) 
+                    },
+                    { 
+                        title: '已入库数量', 
+                        dataIndex: 'receivedQty', 
+                        width: 100, 
+                        align: 'right', 
+                        render: (v, r) => v !== undefined && v !== null ? v : (r.finishedQty !== undefined ? r.finishedQty : 0) 
+                    },
+                    { 
+                        title: '待入库数量', 
+                        dataIndex: 'remainQty', 
+                        width: 100, 
+                        align: 'right', 
+                        render: (v, r) => {
+                            if (v !== undefined && v !== null) return v;
+                            if (r.pendingQty !== undefined && r.pendingQty !== null) return r.pendingQty;
+                            const ord = r.orderQty !== undefined && r.orderQty !== null ? r.orderQty : (r.processQty !== undefined ? r.processQty : (r.quantity + (r.receivedQty || r.finishedQty || 0)));
+                            const rec = r.receivedQty !== undefined && r.receivedQty !== null ? r.receivedQty : (r.finishedQty !== undefined ? r.finishedQty : 0);
+                            return ord - rec;
+                        }
+                    },
                 ];
                 qtyLabel = '本次入库';
                 hasPrice = true;
@@ -123,8 +152,9 @@ const InboundAuditModal = ({ open, record, onCancel, onSuccess }) => {
         { title: '物料编码', dataIndex: 'productCode', width: 120 },
         { title: '物料名称', dataIndex: 'productName' },
         { title: '规格', dataIndex: 'spec', ellipsis: true },
+        { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
         { title: '单位', dataIndex: 'unit', width: 60 },
-        ...extraQtyColumns.map(col => ({ ...col, render: (val) => val || '-' })),
+        ...extraQtyColumns.map(col => ({ ...col, render: col.render || ((val) => val || '-') })),
         { title: qtyLabel, dataIndex: 'quantity', width: 100, align: 'right', render: (val) => val || '-' },
         ...(hasPrice ? [{ title: priceLabel, dataIndex: 'price', width: 100, align: 'right', render: (val) => `￥${val?.toFixed(2) || '0.00'}` }] : []),
         { 
@@ -190,7 +220,48 @@ const InboundAuditModal = ({ open, record, onCancel, onSuccess }) => {
                         <Descriptions.Item label={relOrderLabel}>{record.relOrderNo || '-'}</Descriptions.Item>
                         <Descriptions.Item label={partnerLabel}>{record.partnerName || '-'}</Descriptions.Item>
                         <Descriptions.Item label="仓管员">{record.operator || '管理员'}</Descriptions.Item>
-                        <Descriptions.Item label="备注" span={2}>{record.remark || '-'}</Descriptions.Item>
+                        {record.type === '受托入库' && (
+                            <Descriptions.Item label="批次号">
+                                {record.batchNo || 'B20250425PD001'}
+                            </Descriptions.Item>
+                        )}
+                        <Descriptions.Item label="备注" span={record.type === '受托入库' ? 1 : 2}>{record.remark || '-'}</Descriptions.Item>
+                        <Descriptions.Item label="凭证/图片" span={3}>
+                          {record.images && record.images.length > 0 ? (
+                            <div className="flex gap-2 flex-wrap mt-1">
+                              {record.images.map((img, idx) => (
+                                <div key={idx} className="relative border border-slate-200 rounded p-1 group bg-white shadow-sm hover:shadow transition-shadow cursor-pointer"
+                                     onClick={() => {
+                                       Modal.info({
+                                         title: '凭证图片预览',
+                                         width: 'auto',
+                                         centered: true,
+                                         icon: null,
+                                         okText: '关闭',
+                                         content: (
+                                           <div style={{ textAlign: 'center', marginTop: 12 }}>
+                                             <img src={img} alt="preview" style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 4 }} referrerPolicy="no-referrer" />
+                                           </div>
+                                         )
+                                       });
+                                     }}
+                                >
+                                  <img 
+                                    src={img} 
+                                    alt={`voucher-${idx + 1}`} 
+                                    className="h-20 w-auto max-w-[160px] object-contain rounded" 
+                                    referrerPolicy="no-referrer"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
+                                    <span className="text-white text-[11px] px-1.5 py-0.5 bg-black/60 rounded">点击放大</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">无凭证图片</span>
+                          )}
+                        </Descriptions.Item>
                     </Descriptions>
 
                     <Divider titlePlacement="left" style={{ margin: '16px 0' }}>物料明细</Divider>

@@ -55,12 +55,12 @@ const NormalOrder = () => {
       }
     }
   }, [location.state, data]);
-  const [deliveryModal, setDeliveryModal] = useState({ open: false, orderId: null });
+  const [deliveryModal, setDeliveryModal] = useState({ open: false, record: null });
   const [claimModal, setClaimModal] = useState({ open: false, order: null });
   const [deliveryNoticeModal, setDeliveryNoticeModal] = useState({ open: false, order: null });
   const [prodProgressModal, setProdProgressModal] = useState({ open: false, orderNo: '' });
   const [prodPlanModal, setProdPlanModal] = useState({ open: false, orderNo: '' });
-  const [auditDrawer, setAuditDrawer] = useState({ open: false, orderNo: '' });
+  const [auditDrawer, setAuditDrawer] = useState({ open: false, record: null });
   const [auditModal, setAuditModal] = useState({ open: false, record: null });
 
   const columns = [
@@ -81,7 +81,7 @@ const NormalOrder = () => {
       title: '审核详情', 
       key: 'audit', 
       width: 120,
-      render: (_, record) => <Link onClick={() => setAuditDrawer({ open: true, orderNo: record.orderNo })}>查看审核详情</Link>
+      render: (_, record) => <Link onClick={() => setAuditDrawer({ open: true, record: record })}>查看审核详情</Link>
     },
     { 
       title: '客户名称', 
@@ -109,6 +109,24 @@ const NormalOrder = () => {
     { title: '业务员', dataIndex: 'salesman', width: 100 },
     { title: '结算方式', dataIndex: 'settlementMethod', width: 100 },
     { 
+      title: '是否存在定制产品', 
+      dataIndex: 'hasCustomProduct', 
+      width: 130,
+      render: (val, rec) => {
+        const isCustom = val ?? rec.items?.some(i => i.isCustom) ?? false;
+        return isCustom ? <Tag color="error">是</Tag> : <Tag color="default">否</Tag>;
+      }
+    },
+    { 
+      title: '紧急程度', 
+      dataIndex: 'urgency', 
+      width: 120,
+      render: (val, record) => {
+        const value = val || (record.isUrgent ? '紧急' : '一般');
+        return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+      }
+    },
+    { 
       title: '生产进度', 
       dataIndex: 'productionProgress', 
       width: 150,
@@ -122,7 +140,7 @@ const NormalOrder = () => {
       title: '发货进度', 
       dataIndex: 'deliveryStatus', 
       width: 100,
-      render: (text, record) => <Link onClick={() => setDeliveryModal({ open: true, orderId: record.id })}>{text}</Link>
+      render: (text, record) => <Link onClick={() => setDeliveryModal({ open: true, record })}>{text}</Link>
     },
     { 
       title: '审核结果', 
@@ -268,14 +286,14 @@ const NormalOrder = () => {
 
       <NormalOrderDetailDrawer 
         open={detailDrawer.open} 
-        order={detailDrawer.data}
+        record={detailDrawer.data}
         onClose={() => setDetailDrawer({ open: false, data: null })}
       />
 
       <DeliveryProgressModal 
         open={deliveryModal.open} 
-        onCancel={() => setDeliveryModal({ open: false, orderId: null })}
-        orderNo="SOD-XXX"
+        onCancel={() => setDeliveryModal({ open: false, record: null })}
+        record={deliveryModal.record}
       />
 
       <ClaimFlowModal 
@@ -302,13 +320,13 @@ const NormalOrder = () => {
         orderNo={prodPlanModal.orderNo}
       />
 
-      <AuditDetailDrawer 
+      <NormalOrderDetailDrawer 
         open={auditDrawer.open} 
-        orderNo={auditDrawer.orderNo}
-        onClose={() => setAuditDrawer({ open: false, orderNo: '' })}
+        record={auditDrawer.record}
+        onClose={() => setAuditDrawer({ open: false, record: null })}
       />
 
-      <AuditModal 
+      <NormalOrderFormModal 
         open={auditModal.open} 
         record={auditModal.record} 
         onCancel={() => setAuditModal({ open: false, record: null })}
@@ -316,10 +334,15 @@ const NormalOrder = () => {
           setData(data.map(o => o.id === updatedRecord.id ? { 
             ...o, 
             status: updatedRecord.auditResult === '审核通过' ? '已审核' : o.status,
-            approvalResult: updatedRecord.auditResult
+            approvalResult: updatedRecord.auditResult,
+            auditResult: updatedRecord.auditResult,
+            auditRemark: updatedRecord.auditRemark,
+            auditTime: updatedRecord.auditTime,
+            auditor: updatedRecord.auditor
           } : o));
           setAuditModal({ open: false, record: null });
         }}
+        mode="audit"
       />
     </div>
   );

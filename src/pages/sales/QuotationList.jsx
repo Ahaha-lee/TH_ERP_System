@@ -144,6 +144,13 @@ const QuotationList = () => {
       )
     },
     { title: '客户名称', dataIndex: 'customerName', ellipsis: true },
+    { 
+      title: '是否存在定制产品', 
+      dataIndex: 'hasCustomProduct', 
+      width: 100,
+      align: 'center',
+      render: (val) => val ? <Tag color="warning">是</Tag> : <Tag>否</Tag>
+    },
     { title: '报价日期', dataIndex: 'quotationDate', width: 110 },
     { 
       title: '报价总额', 
@@ -315,8 +322,8 @@ const QuotationList = () => {
       >
         {currentRecord && (
           <Space orientation="vertical" size="large" style={{ width: '100%' }}>
-            <Descriptions title="基本信息" bordered column={2} size="small">
-              <Descriptions.Item label="报价标题" span={2}>{currentRecord.title || '-'}</Descriptions.Item>
+            <Descriptions title="基本信息" bordered column={3} size="small">
+              <Descriptions.Item label="报价标题" span={3}>{currentRecord.title || '-'}</Descriptions.Item>
               <Descriptions.Item label="报价单号">{currentRecord.quotationNo}</Descriptions.Item>
               <Descriptions.Item label="审核状态">
                 <Badge status={
@@ -325,16 +332,25 @@ const QuotationList = () => {
                   currentRecord.status === '审核拒绝' ? 'error' : 'default'
                 } text={currentRecord.status} />
               </Descriptions.Item>
-              <Descriptions.Item label="客户名称">{currentRecord.customerName}</Descriptions.Item>
               <Descriptions.Item label="业务员">{currentRecord.salesperson}</Descriptions.Item>
-              <Descriptions.Item label="是否收取订金">{currentRecord.isDeposit ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="客户名称" span={2}>{currentRecord.customerName}</Descriptions.Item>
+              <Descriptions.Item label="预计交期">{currentRecord.expectedDeliveryDate || '-'}</Descriptions.Item>
+              <Descriptions.Item label="是否存在定制产品">
+                <Tag color={currentRecord.items?.some(i => i.isCustom) ? "warning" : "default"}>
+                  {currentRecord.items?.some(i => i.isCustom) ? '是' : '否'}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="是否收取定金">{currentRecord.isDeposit ? '是' : '否'}</Descriptions.Item>
               {currentRecord.isDeposit && (
-                <>
-                  <Descriptions.Item label="订金比例">{((currentRecord.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
-                  <Descriptions.Item label="订金应收">
-                    {`¥${(currentRecord.depositAmount || (currentRecord.totalAmount * (currentRecord.depositRate || 0))).toLocaleString()}`}
-                  </Descriptions.Item>
-                </>
+                <Descriptions.Item label="定金比例">{((currentRecord.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
+              )}
+              {currentRecord.isDeposit && (
+                <Descriptions.Item label="定金应收" span={3}>
+                  {`¥${(currentRecord.depositAmount || (currentRecord.totalAmount * (currentRecord.depositRate || 0)) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                </Descriptions.Item>
+              )}
+              {!currentRecord.isDeposit && (
+                <Descriptions.Item label="结算方式">全额支付</Descriptions.Item>
               )}
             </Descriptions>
 
@@ -347,21 +363,51 @@ const QuotationList = () => {
               columns={[
                 { title: '产品编码', dataIndex: 'productCode', width: 120 },
                 { title: '产品名称', dataIndex: 'productName' },
+                { 
+                  title: '定制', 
+                  dataIndex: 'isCustom', 
+                  width: 80, 
+                  align: 'center',
+                  render: (val) => val ? <Tag color="orange">是</Tag> : <Tag>否</Tag>
+                },
                 { title: '规格', dataIndex: 'spec', ellipsis: true },
+                { title: '库存数量', dataIndex: 'stockQty', width: 80, align: 'right' },
+                { title: '可售数量', dataIndex: 'availableQty', width: 80, align: 'right' },
+                { title: '占用数量', dataIndex: 'occupiedQty', width: 80, align: 'right' },
                 { title: '数量', dataIndex: 'quantity', width: 80, align: 'right' },
                 { 
                   title: '报价单价', 
                   dataIndex: 'price', 
                   width: 100, 
                   align: 'right',
-                  render: (val) => `¥${val.toLocaleString()}`
+                  render: (val, record) => {
+                    const priceVal = val ?? record.standardPrice ?? record.finalPrice ?? record.price ?? 0;
+                    return `¥${priceVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                  }
                 },
                 { 
                   title: '折后总价', 
                   dataIndex: 'discountPrice', 
                   width: 120, 
                   align: 'right',
-                  render: (val, record) => `¥${((val || record.price) * record.quantity).toLocaleString()}`
+                  render: (val, record) => {
+                    const discountTotal = val ?? record.amount ?? ((record.finalPrice || record.discountPrice || record.standardPrice || record.price || 0) * (record.quantity || 0));
+                    return `¥${discountTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                  }
+                },
+                { 
+                  title: '含税总额', 
+                  width: 120, 
+                  align: 'right',
+                  render: (_, record) => {
+                    const discountTotal = record.amount ?? ((record.finalPrice || record.discountPrice || record.standardPrice || record.price || 0) * (record.quantity || 0));
+                    const activeTaxRateStr = currentRecord.taxRate ?? '13%';
+                    const clean = String(activeTaxRateStr).replace('%', '').trim();
+                    const num = parseFloat(clean);
+                    const rate = isNaN(num) ? 0.13 : (num > 1 ? num / 100 : num);
+                    const taxed = discountTotal * (1 + rate);
+                    return `¥${taxed.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                  }
                 },
               ]}
             />

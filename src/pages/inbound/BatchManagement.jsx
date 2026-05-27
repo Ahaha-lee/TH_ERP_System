@@ -25,10 +25,10 @@ const BatchManagement = () => {
     { title: '序号', width: 60, render: (_, __, index) => index + 1 },
     { title: '批次号', dataIndex: 'batchNo', width: 160 },
     { 
-      title: '关联工单号', 
-      dataIndex: 'relOrderNo', 
+      title: '关联入库单号', 
+      dataIndex: 'relInboundNo', 
       width: 160,
-      render: (text) => <Link onClick={() => message.info(`跳转至工单：${text}`)}>{text}</Link>
+      render: (text) => <Link onClick={() => message.info(`跳转至入库单：${text}`)}>{text}</Link>
     },
     { title: '存放仓库', dataIndex: 'warehouseName', width: 150 },
     { title: '存放货位', dataIndex: 'location', width: 120 },

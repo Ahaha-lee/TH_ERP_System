@@ -18,9 +18,11 @@ const ProductionInboundDetailDrawer = ({ open, onClose, orderNo }) => {
     { title: '物料编码', dataIndex: 'productCode', width: 120 },
     { title: '物料名称', dataIndex: 'productName', width: 150 },
     { title: '规格', dataIndex: 'spec', width: 120 },
+    { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
     { title: '单位', dataIndex: 'unit', width: 60 },
+    { title: '工单数量', dataIndex: 'planQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.workOrderQty !== undefined && r.workOrderQty !== null ? r.workOrderQty : (r.quantity || '-')) },
+    { title: '入库仓库', dataIndex: 'warehouseName', width: 120, render: (val) => val || order?.warehouseName || '-' },
     { title: '本次入库', dataIndex: 'quantity', width: 100, align: 'right' },
-    { title: '批次号', dataIndex: 'batchNo', width: 150 },
     { title: '货位', dataIndex: 'bin', width: 100 },
   ];
 
@@ -53,7 +55,8 @@ const ProductionInboundDetailDrawer = ({ open, onClose, orderNo }) => {
         <Descriptions.Item label="状态">
           <Tag color={order?.status === '已入库' ? 'cyan' : 'blue'}>{order?.status}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="备注" span={3}>{order?.remark || '-'}</Descriptions.Item>
+        <Descriptions.Item label="批次号">{order?.batchNo || order?.items?.[0]?.batchNo || 'B20250425PD001'}</Descriptions.Item>
+        <Descriptions.Item label="备注" span={2}>{order?.remark || '-'}</Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left">入库产品明细</Divider>
@@ -67,9 +70,9 @@ const ProductionInboundDetailDrawer = ({ open, onClose, orderNo }) => {
           let totalQty = pageData.reduce((s, it) => s + (it.quantity || 0), 0);
           return (
             <Table.Summary.Row key="total">
-              <Table.Summary.Cell index={0} colSpan={5}>合计</Table.Summary.Cell>
+              <Table.Summary.Cell index={0} colSpan={8}>合计</Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right"><Text strong>{totalQty}</Text></Table.Summary.Cell>
-              <Table.Summary.Cell index={2} colSpan={2}></Table.Summary.Cell>
+              <Table.Summary.Cell index={2}></Table.Summary.Cell>
             </Table.Summary.Row>
           );
         }}

@@ -1,32 +1,46 @@
 
 import React from 'react';
-import { Modal, Table, Tag, Typography } from 'antd';
+import { Modal, Table, Tag, Typography, message } from 'antd';
 
 const { Text } = Typography;
 
-const InboundProgressModal = ({ open, record, onCancel }) => {
+const InboundProgressModal = ({ open, record, onCancel, type = 'outbound' }) => {
+    const isOutbound = type === 'outbound';
+    const label = isOutbound ? '出库' : '入库';
+    const prefix = isOutbound ? 'OUT' : 'IN';
+
     // Mock inbound data related to the after-sales order
-    const mockInboundLogs = [
+    let mockInboundLogs = [
         { 
             key: '1', 
-            inboundNo: `IN-REP-${record?.replenishNo || record?.id || '20250429'}-01`, 
-            productInfo: record?.items?.map(i => `${i.productName}/${i.quantity || 0}`).join(', ') || '待收货产品',
-            status: '已入库' 
+            inboundNo: `${prefix}-REP-${record?.replenishNo || record?.id || '20250429'}-01`, 
+            stockingPlanNo: `SP-REP-${record?.replenishNo || '20250429'}-01`,
+            productInfo: record?.items?.map(i => `${i.productName}/${i.quantity || 0}套`).join(', ') || '待收货产品',
+            status: record?.exchangeNo ? '已入库' : `已${label}`
         },
         { 
             key: '2', 
-            inboundNo: `IN-REP-${record?.replenishNo || record?.id || '20250429'}-02`, 
+            inboundNo: `${prefix}-REP-${record?.replenishNo || record?.id || '20250429'}-02`, 
+            stockingPlanNo: `SP-REP-${record?.replenishNo || '20250429'}-02`,
             productInfo: '配件/1',
-            status: '已入库' 
+            status: record?.exchangeNo ? '已入库' : `已${label}`
         }
     ];
 
+
+
     const columns = [
         { 
-            title: '入库单号', 
+            title: `${label}单号`, 
             dataIndex: 'inboundNo', 
             key: 'inboundNo',
-            render: (text) => <Typography.Link>{text}</Typography.Link>
+            render: (text) => <Typography.Link onClick={() => message.info(`正在跳转至${label}详情: ${text}`)}>{text}</Typography.Link>
+        },
+        { 
+            title: '备货单号', 
+            dataIndex: 'stockingPlanNo', 
+            key: 'stockingPlanNo',
+            render: (text) => <Typography.Link onClick={() => message.info(`正在跳转至备货计划: ${text}`)}>{text}</Typography.Link>
         },
         { 
             title: '产品信息', 
@@ -37,17 +51,20 @@ const InboundProgressModal = ({ open, record, onCancel }) => {
             title: '状态', 
             dataIndex: 'status', 
             key: 'status',
-            render: (status) => (
-                <Tag color="green">
-                    {status}
-                </Tag>
-            )
+            render: (status) => {
+                const colors = {
+                    '已出库': 'green',
+                    '已入库': 'green',
+                    '已关闭(备货取消)': 'magenta'
+                };
+                return <Tag color={colors[status] || 'blue'}>{status}</Tag>;
+            }
         },
     ];
 
     return (
         <Modal forceRender
-            title="查看入库进度"
+            title={`查看${label}进度`}
             open={open}
             onCancel={onCancel}
             footer={[

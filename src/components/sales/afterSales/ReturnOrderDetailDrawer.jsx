@@ -17,12 +17,17 @@ const ReturnOrderDetailDrawer = ({ open, record, onClose }) => {
                         <Descriptions.Item label="售后订单号">{record.returnNo}</Descriptions.Item>
                         <Descriptions.Item label="原销售订单">{record.sourceOrderNo}</Descriptions.Item>
                         <Descriptions.Item label="状态"><Tag color="blue">{record.status}</Tag></Descriptions.Item>
+                        <Descriptions.Item label="紧急程度">
+                            <Tag color={(record.urgency === '紧急' || record.isUrgent) ? "error" : "default"}>
+                                {record.urgency || (record.isUrgent ? '紧急' : '一般')}
+                            </Tag>
+                        </Descriptions.Item>
                         <Descriptions.Item label="客户">{record.customerName}</Descriptions.Item>
                         <Descriptions.Item label="客户类型">{record.customerType || '-'}</Descriptions.Item>
                         <Descriptions.Item label="结算方式">{record.settlementMethod}</Descriptions.Item>
                         <Descriptions.Item label="订单日期">{record.orderDate}</Descriptions.Item>
                         <Descriptions.Item label="业务员">{record.salesperson}</Descriptions.Item>
-                        <Descriptions.Item label="申请原因">{record.returnReason || '-'}</Descriptions.Item>
+                        <Descriptions.Item label="申请原因" span={3}>{record.returnReason || '-'}</Descriptions.Item>
                     </Descriptions>
 
                     <Divider titlePlacement="left">退货产品明细</Divider>
@@ -78,7 +83,12 @@ const ReturnOrderDetailDrawer = ({ open, record, onClose }) => {
 
     return (
         <Drawer forceRender
-            title={`退货单详情 - ${record.returnNo}`}
+            title={
+                <div className="flex items-center gap-2">
+                    <span>退货单详情 - {record.returnNo}</span>
+                    {(record.urgency === '紧急' || record.isUrgent) && <Tag color="red">加急单</Tag>}
+                </div>
+            }
             open={open}
             onClose={onClose}
             size="large"

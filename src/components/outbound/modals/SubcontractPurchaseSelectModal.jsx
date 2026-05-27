@@ -7,12 +7,12 @@ const { RangePicker } = DatePicker;
 
 const SubcontractPurchaseSelectModal = ({ open, onCancel, onSelect }) => {
   const [form] = Form.useForm();
-  const [data, setData] = useState(subcontractPurchases);
+  const [data, setData] = useState(subcontractPurchases.map(p => ({ ...p, status: '已完成' })));
   const [selectedRow, setSelectedRow] = useState(null);
 
   const handleSearch = () => {
     const values = form.getFieldsValue();
-    let filtered = [...subcontractPurchases];
+    let filtered = subcontractPurchases.map(p => ({ ...p, status: '已完成' }));
     
     if (values.orderNo) filtered = filtered.filter(p => p.orderNo.includes(values.orderNo));
     if (values.supplierName) filtered = filtered.filter(p => p.supplierName.includes(values.supplierName));
@@ -76,14 +76,14 @@ const SubcontractPurchaseSelectModal = ({ open, onCancel, onSelect }) => {
         <Form.Item>
           <Space>
             <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
-            <Button icon={<ReloadOutlined />} onClick={() => { form.resetFields(); setData(subcontractPurchases); }}>重置</Button>
+            <Button icon={<ReloadOutlined />} onClick={() => { form.resetFields(); setData(subcontractPurchases.map(p => ({ ...p, status: '已完成' }))); }}>重置</Button>
           </Space>
         </Form.Item>
       </Form>
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={data.filter(p => p.status === '已下达')}
+        dataSource={data}
         rowSelection={{
           type: 'radio',
           onChange: (_, selectedRows) => setSelectedRow(selectedRows[0]),

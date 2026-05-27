@@ -100,6 +100,15 @@ const ReturnOrderList = () => {
         },
         { title: '售后类型', dataIndex: 'type', render: () => '退货' },
         { 
+            title: '紧急程度', 
+            dataIndex: 'urgency', 
+            width: 120,
+            render: (val, record) => {
+                const value = val || (record.isUrgent ? '紧急' : '一般');
+                return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+            }
+        },
+        { 
             title: '审批详情', 
             render: (_, record) => <Link onClick={() => handleViewAudit(record)}>查看审批详情</Link> 
         },
@@ -130,7 +139,7 @@ const ReturnOrderList = () => {
             title: '订单状态', 
             dataIndex: 'status',
             render: (status) => {
-                const colors = { '草稿': 'default', '待收货': 'orange', '待财务审批': 'blue', '已完成': 'green', '已关闭': 'red' };
+                const colors = { '草稿': 'default', '待收货': 'orange', '已完成': 'green', '已关闭': 'red' };
                 return <Tag color={colors[status]}>{status}</Tag>;
             }
         },
@@ -157,18 +166,6 @@ const ReturnOrderList = () => {
                                 {auditResult && <Button type="link" size="small" onClick={() => handleClose(record)}>手动关闭</Button>}
                             </>
                         )}
-                        {status === '待财务审批' && (
-                            <>
-                                {record.returnNo === 'RT20250429005' && (
-                                    <Button type="link" size="small" icon={<EditOutlined />} onClick={() => setFormModal({ open: true, record })}>编辑</Button>
-                                )}
-                                {record.returnNo !== 'RT20250429005' && (
-                                    <Button type="link" size="small" onClick={() => setAuditModal({ open: true, record, type: 'finance' })}>财务审批</Button>
-                                )}
-                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
-                                {auditResult && <Button type="link" size="small" onClick={() => handleClose(record)}>手动关闭</Button>}
-                            </>
-                        )}
                         {(status === '已完成' || status === '已关闭') && (
                             <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
                         )}
@@ -189,7 +186,7 @@ const ReturnOrderList = () => {
                     <Col span={6}>
                         <Form.Item name="status" label="订单状态">
                             <Select placeholder="选择状态" allowClear>
-                                {['草稿', '待收货', '待财务审批', '已完成', '已关闭'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
+                                {['草稿', '待收货', '已完成', '已关闭'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
                             </Select>
                         </Form.Item>
                     </Col>
@@ -256,8 +253,8 @@ const ReturnOrderList = () => {
                         let nextResult = auditedData.auditResult;
                         if (auditedData.auditResult === '审批通过') {
                             if (auditedData.status === '待收货') {
-                                nextStatus = '待财务审批';
-                                nextResult = null;
+                                nextStatus = '已完成';
+                                nextResult = '审批通过';
                             }
                         }
                         mockData.upsert('returns', { ...auditedData, status: nextStatus, auditResult: nextResult });
@@ -285,6 +282,7 @@ const ReturnOrderList = () => {
             <InboundProgressModal 
                 open={inboundModal.open} 
                 record={inboundModal.record} 
+                type="inbound"
                 onCancel={() => setInboundModal({ open: false, record: null })} 
             />
         </div>

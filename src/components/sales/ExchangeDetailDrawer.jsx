@@ -19,7 +19,7 @@ const ExchangeDetailDrawer = ({ open, onClose, record }) => {
       </Descriptions>
       <div className="flex gap-4">
         <div className="flex-1">
-            <Descriptions title="退回旧货" size="small" />
+            <div className="font-semibold mb-2 text-gray-700">退回旧货</div>
             <Table 
                 dataSource={record.returnItems || []} 
                 rowKey="productName"
@@ -28,7 +28,7 @@ const ExchangeDetailDrawer = ({ open, onClose, record }) => {
             />
         </div>
         <div className="flex-1">
-            <Descriptions title="换出新货" size="small" />
+            <div className="font-semibold mb-2 text-gray-700">换出新货</div>
             <Table 
                 dataSource={record.exchangeItems || []} 
                 rowKey="productName"

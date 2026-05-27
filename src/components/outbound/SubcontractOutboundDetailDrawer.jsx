@@ -26,11 +26,16 @@ const SubcontractOutboundDetailDrawer = ({ open, onClose, orderId }) => {
 
   const columns = [
     { title: '序号', render: (_, __, i) => i + 1, width: 60 },
-    { title: '物料编码', dataIndex: 'productCode' },
-    { title: '物料名称', dataIndex: 'productName' },
-    { title: '规格', dataIndex: 'spec' },
-    { title: '单位', dataIndex: 'unit' },
-    { title: '出库数量', dataIndex: 'quantity', align: 'right' },
+    { title: '物料编码', dataIndex: 'productCode', width: 120 },
+    { title: '物料名称', dataIndex: 'productName', width: 155 },
+    { title: '规格', dataIndex: 'spec', width: 120, render: (v) => v || '-' },
+    { title: '单位', dataIndex: 'unit', width: 80, render: (v) => v || '-' },
+    { title: '应发数量', dataIndex: 'applyQty', align: 'right', width: 100, render: (v, r) => v !== undefined && v !== null ? v : (r.quantity || '-') },
+    { title: '本次出库数量', dataIndex: 'outboundQty', align: 'right', width: 120, render: (v, r) => v !== undefined && v !== null ? v : (r.quantity || '-') },
+    { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
+    { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || order.location || '-' },
+    { title: '备注', dataIndex: 'remark', width: 150, render: (v) => v || '-' },
   ];
 
   const auditColumns = [
@@ -58,14 +63,14 @@ const SubcontractOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         <Descriptions.Item label="出库类型">
           <Tag color="orange">{order.type}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="关联单号">{order.relOrderNo}</Descriptions.Item>
-        <Descriptions.Item label="供应商">{order.partnerName}</Descriptions.Item>
-        <Descriptions.Item label="仓库">{order.warehouseName}</Descriptions.Item>
-        <Descriptions.Item label="出库日期">{order.outboundDate}</Descriptions.Item>
+        <Descriptions.Item label="关联委外采购单">{order.relNoticeNo || order.relOrderNo || '-'}</Descriptions.Item>
+        <Descriptions.Item label="供应商">{order.partnerName || '-'}</Descriptions.Item>
+        <Descriptions.Item label="仓管员">{order.handler || order.operator || '管理员'}</Descriptions.Item>
+        <Descriptions.Item label="创建日期">{order.createDate || order.outboundDate || order.date || '-'}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <Tag color={order.status === '草稿' ? 'default' : 'processing'}>{order.status}</Tag>
+          <Tag color={order.status === '已审核' || order.status === '已审批' ? 'success' : order.status === '待审核' || order.status === '待审批' ? 'orange' : 'default'}>{order.status}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="备注" span={2}>{order.remark}</Descriptions.Item>
+        <Descriptions.Item label="备注" span={2}>{order.remark || '-'}</Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left">发料物料明细</Divider>
@@ -74,6 +79,7 @@ const SubcontractOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         columns={columns} 
         pagination={false} 
         rowKey="productCode" 
+        scroll={{ x: 1000 }}
       />
     </>
   );

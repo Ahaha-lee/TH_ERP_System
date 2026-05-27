@@ -41,7 +41,7 @@ const ConsignmentOrder = () => {
   // Modals visibility
   const [formModal, setFormModal] = useState({ open: false, data: null });
   const [detailDrawer, setDetailDrawer] = useState({ open: false, data: null });
-  const [deliveryModal, setDeliveryModal] = useState({ open: false, orderNo: '' });
+  const [deliveryModal, setDeliveryModal] = useState({ open: false, record: null });
   const [receiptModal, setReceiptModal] = useState({ open: false, orderNo: '' });
   const [prodProgressModal, setProdProgressModal] = useState({ open: false, orderNo: '' });
   const [auditDrawer, setAuditDrawer] = useState({ open: false, orderNo: '' });
@@ -55,6 +55,15 @@ const ConsignmentOrder = () => {
       dataIndex: 'orderNo', 
       width: 160,
       render: (text, record) => <Link onClick={() => setDetailDrawer({ open: true, data: record })}>{text}</Link>
+    },
+    { 
+      title: '紧急程度', 
+      dataIndex: 'urgency', 
+      width: 120,
+      render: (val, record) => {
+          const value = val || (record.isUrgent ? '紧急' : '一般');
+          return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+      }
     },
     { 
       title: '来源报价单号', 
@@ -86,7 +95,7 @@ const ConsignmentOrder = () => {
       title: '发货进度', 
       dataIndex: 'deliveryStatus', 
       width: 100,
-      render: (text, record) => <Link onClick={() => setDeliveryModal({ open: true, orderNo: record.orderNo })}>{text}</Link>
+      render: (text, record) => <Link onClick={() => setDeliveryModal({ open: true, record })}>{text}</Link>
     },
     { title: '业务员', dataIndex: 'salesman', width: 100 },
     { 
@@ -189,7 +198,7 @@ const ConsignmentOrder = () => {
 
       <ConsignmentFormModal open={formModal.open} onClose={() => setFormModal({ open: false, data: null })} onSuccess={handleFormSuccess} initialData={formModal.data} />
       <ConsignmentDetailDrawer open={detailDrawer.open} order={detailDrawer.data} onClose={() => setDetailDrawer({ open: false, data: null })} />
-      <DeliveryProgressModal open={deliveryModal.open} onCancel={() => setDeliveryModal({ open: false, orderNo: '' })} orderNo={deliveryModal.orderNo} />
+      <DeliveryProgressModal open={deliveryModal.open} onCancel={() => setDeliveryModal({ open: false, record: null })} record={deliveryModal.record} />
       <ProductionProgressModal open={prodProgressModal.open} onCancel={() => setProdProgressModal({ open: false, orderNo: '' })} orderNo={prodProgressModal.orderNo} />
       <MaterialReceiptProgressModal open={receiptModal.open} onCancel={() => setReceiptModal({ open: false, orderNo: '' })} orderNo={receiptModal.orderNo} />
       <AuditDetailDrawer open={auditDrawer.open} orderNo={auditDrawer.orderNo} onClose={() => setAuditDrawer({ open: false, orderNo: '' })} />

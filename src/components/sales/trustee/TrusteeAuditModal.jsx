@@ -25,6 +25,32 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
     const [form] = Form.useForm();
     const [items, setItems] = useState([]);
 
+    const calculations = React.useMemo(() => {
+        if (!record) return { productTotal: 0, discountedTotal: 0, totalSaving: 0, taxedProductTotal: 0, orderTotal: 0, rateVal: 0.13 };
+        const itemsList = record.items || [];
+        const productTotal = itemsList.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
+        const discountedTotal = productTotal * 0.95; // 5% discount
+        const totalSaving = productTotal - discountedTotal;
+
+        const activeTaxRateStr = record.taxRate ?? 13;
+        const clean = String(activeTaxRateStr).replace('%', '').trim();
+        const num = parseFloat(clean);
+        const rateVal = isNaN(num) ? 0.13 : (num > 1 ? num / 100 : num);
+
+        const taxedProductTotal = discountedTotal * (1 + rateVal);
+        const otherFee = record.otherFee ?? record.otherFees ?? 0;
+        const orderTotal = taxedProductTotal + otherFee;
+
+        return {
+            productTotal,
+            discountedTotal,
+            totalSaving,
+            taxedProductTotal,
+            orderTotal,
+            rateVal
+        };
+    }, [record]);
+
     React.useEffect(() => {
         if (record && record.items) {
             setItems(record.items.map(item => ({
@@ -59,47 +85,21 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
         { title: '产品名称', dataIndex: 'productName', width: 150 },
         { title: '规格', dataIndex: 'spec', width: 120 },
         { title: '数量', dataIndex: 'quantity', width: 80, align: 'right' },
-        { 
-            title: '出库仓库', 
-            dataIndex: 'warehouse',
-            width: 150,
-            render: (val, row) => (
-                <Select 
-                    style={{ width: '100% '}} 
-                    size="small" 
-                    value={val}
-                    onChange={(newVal) => {
-                        setItems(items.map(it => it.id === row.id ? { ...it, warehouse: newVal } : it));
-                    }}
-                >
-                    {warehouses.map(w => <Option key={w.id} value={w.name}>{w.name}</Option>)}
-                </Select>
-            )
+        { title: '加工单价', dataIndex: 'unitPrice', width: 100, align: 'right', render: (v) => `¥${(v || 0).toFixed(2)}` },
+        { title: '金额', dataIndex: 'amount', width: 110, align: 'right', render: (_, rec) => {
+            const amt = (rec.unitPrice || 0) * (rec.quantity || 0);
+            return <strong className="font-mono text-gray-900">¥{amt.toFixed(2)}</strong>;
+        } },
+        {
+            title: '含税总额',
+            width: 120,
+            align: 'right',
+            render: (_, rec) => {
+                const amt = (rec.unitPrice || 0) * (rec.quantity || 0);
+                const taxedAmt = amt * (1 + calculations.rateVal);
+                return <strong className="font-mono text-amber-600">¥{taxedAmt.toFixed(2)}</strong>;
+            }
         },
-        { 
-            title: '货位', 
-            dataIndex: 'location',
-            width: 150,
-            render: (val, row) => (
-                <Select 
-                    style={{ width: '100% '}} 
-                    size="small" 
-                    value={val}
-                    allowClear
-                    placeholder="请选择"
-                    onChange={(newVal) => {
-                        setItems(items.map(it => it.id === row.id ? { ...it, location: newVal } : it));
-                    }}
-                >
-                    <Option value="A-01-01">A-01-01</Option>
-                    <Option value="A-01-02">A-01-02</Option>
-                    <Option value="B-02-01">B-02-01</Option>
-                    <Option value="R-01-01">R-01-01</Option>
-                </Select>
-            )
-        },
-        { title: '单价', dataIndex: 'unitPrice', width: 100, align: 'right', render: (v) => `¥${(v || 0).toFixed(2)}` },
-        { title: '金额', dataIndex: 'amount', width: 120, align: 'right', render: (v) => <Text strong type="danger">¥{(v || 0).toFixed(2)}</Text> },
     ];
 
     return (
@@ -124,6 +124,11 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
                     <Descriptions.Item label="期望发货日期">{record.expectDeliveryDate || '-'}</Descriptions.Item>
                     <Descriptions.Item label="业务员">{record.salesperson}</Descriptions.Item>
                     <Descriptions.Item label="当前状态"><Tag color="blue">{record.status}</Tag></Descriptions.Item>
+                    <Descriptions.Item label="紧急程度" span={3}>
+                        <Tag color={(record.urgency === '紧急' || record.isUrgent) ? "red" : "default"}>
+                            {record.urgency || (record.isUrgent ? '紧急' : '一般')}
+                        </Tag>
+                    </Descriptions.Item>
                 </Descriptions>
 
                 <Divider titlePlacement="left" style={{ margin: '16px 0' }}>产品明细</Divider>
@@ -145,9 +150,14 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
                     </div>
                 )}
 
-                <div className="mt-4 text-right">
-                    <Text size="large">总额: </Text>
-                    <Text strong type="danger" style={{ fontSize: 20 }}>¥{(record.totalAmount || 0).toFixed(2)}</Text>
+                <div className="bg-gray-50 p-4 rounded text-right space-y-1 mt-4 border">
+                    <div>加工费总计: <Text strong>¥{calculations.productTotal.toFixed(2)}</Text></div>
+                    <div>折后加工费: <Text strong>¥{calculations.discountedTotal.toFixed(2)}</Text> (5%折扣)</div>
+                    <div>优惠总金额: <Text type="secondary">¥{calculations.totalSaving.toFixed(2)}</Text></div>
+                    <div>订单含税总额: <Text strong className="font-mono">¥{calculations.taxedProductTotal.toFixed(2)}</Text></div>
+                    <div>其他费用: <Text strong>¥{(record.otherFee || record.otherFees || 0).toFixed(2)}</Text></div>
+                    <Divider style={{ margin: '8px 0' }} />
+                    <div className="text-xl font-bold text-red-600">订单总额: ¥{calculations.orderTotal.toFixed(2)}</div>
                 </div>
 
                 <Divider style={{ margin: '24px 0 16px 0' }} />

@@ -15,7 +15,8 @@ import {
     Typography, 
     Divider, 
     message,
-    Alert
+    Alert,
+    Switch
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -39,6 +40,7 @@ const ReturnOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                 form.setFieldsValue({
                     ...record,
                     orderDate: dayjs(record.orderDate),
+                    urgency: record.urgency || (record.isUrgent ? '紧急' : '一般'),
                 });
                 setItems(record.items || []);
                 // If it's edit, we'd ideally load the original order context too
@@ -47,7 +49,8 @@ const ReturnOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                 form.setFieldsValue({
                     returnNo: tempNo,
                     orderDate: dayjs(),
-                    salesperson: '管理员'
+                    salesperson: '管理员',
+                    urgency: '一般'
                 });
                 setItems([]);
                 setSelectedOrder(null);
@@ -266,6 +269,14 @@ const ReturnOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                             ]} />
                         </Form.Item>
                     </Col>
+                    <Col span={6}>
+                        <Form.Item name="urgency" label="紧急程度" rules={[{ required: true, message: '请选择紧急程度' }]}>
+                            <Select placeholder="选择紧急程度">
+                                <Select.Option value="紧急">紧急</Select.Option>
+                                <Select.Option value="一般">一般</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </Col>
                 </Row>
 
                 <Alert 
@@ -287,7 +298,7 @@ const ReturnOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
 
                 <Row gutter={24} className="mt-6">
                     <Col span={14}>
-                        <Form.Item name="customerRemark" label="客户备注">
+                        <Form.Item name="customerRemark" label="备注">
                             <TextArea rows={2} placeholder="退款单显示备注" />
                         </Form.Item>
                     </Col>

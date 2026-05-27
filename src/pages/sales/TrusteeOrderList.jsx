@@ -87,6 +87,15 @@ const TrusteeOrderList = () => {
             dataIndex: 'orderNo', 
             render: (text, record) => <Link onClick={() => setDetailDrawer({ open: true, record })}>{text}</Link> 
         },
+        { 
+            title: '紧急程度', 
+            dataIndex: 'urgency', 
+            width: 120,
+            render: (val, record) => {
+                const value = val || (record.isUrgent ? '紧急' : '一般');
+                return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+            }
+        },
         { title: '来源报价单号', dataIndex: 'quotationNo', render: (t) => t || '-' },
         { title: '客户名称', dataIndex: 'customerName', render: (v) => typeof v === 'object' ? v?.name || '-' : v },
         { title: '订单日期', dataIndex: 'orderDate' },
@@ -243,7 +252,7 @@ const TrusteeOrderList = () => {
                         <Space size="small">
                             <Button type="link" size="small" onClick={() => setMaterialReceiptModal({ open: true, record })}>查看来料入库进度</Button>
                             <Button type="link" size="small" onClick={() => setProductionProgressModal({ open: true, record })}>查看生产进度</Button>
-                            <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, orderId: record.id })}>查看发货进度</Button>
+                            <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, record })}>查看发货进度</Button>
                             <Button type="link" size="small" onClick={() => message.success('发货通知已提交')}>发起发货通知</Button>
                         </Space>
                     );
@@ -255,7 +264,7 @@ const TrusteeOrderList = () => {
                         <Space size="small">
                             <Button type="link" size="small" onClick={() => setMaterialReceiptModal({ open: true, record })}>查看来料入库进度</Button>
                             <Button type="link" size="small" onClick={() => setProductionProgressModal({ open: true, record })}>查看生产进度</Button>
-                            <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, orderId: record.id })}>查看发货进度</Button>
+                            <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, record })}>查看发货进度</Button>
                         </Space>
                     );
                 }
@@ -266,7 +275,7 @@ const TrusteeOrderList = () => {
                         <Space size="small">
                             <Button type="link" size="small" onClick={() => setMaterialReceiptModal({ open: true, record })}>查看来料入库进度</Button>
                             <Button type="link" size="small" onClick={() => setProductionProgressModal({ open: true, record })}>查看生产进度</Button>
-                            <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, orderId: record.id })}>查看发货进度</Button>
+                            <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, record })}>查看发货进度</Button>
                             <Button type="link" size="small" onClick={() => setClaimModal({ open: true, record: record })}>认领流水</Button>
                         </Space>
                     );
@@ -343,8 +352,8 @@ const TrusteeOrderList = () => {
 
             <DeliveryProgressModal
                 open={deliveryProgressModal.open}
-                orderId={deliveryProgressModal.orderId}
-                onCancel={() => setDeliveryProgressModal({ open: false, orderId: null })}
+                record={deliveryProgressModal.record}
+                onCancel={() => setDeliveryProgressModal({ open: false, record: null })}
             />
 
             <TrusteeClaimFlowModal

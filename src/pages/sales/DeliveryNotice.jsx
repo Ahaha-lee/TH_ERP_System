@@ -20,7 +20,7 @@ import {
   PlusOutlined,
   ExclamationCircleOutlined 
 } from '@ant-design/icons';
-import { deliveryNotices, employees } from '../../mock';
+import { useMockData, employees } from '../../mock';
 import { formatCurrency } from '../../utils/helpers';
 import DeliveryNoticeFormModal from '../../components/sales/DeliveryNoticeFormModal';
 import DeliveryNoticeDetailDrawer from '../../components/sales/DeliveryNoticeDetailDrawer';
@@ -31,7 +31,7 @@ import WarehouseAuditModal from '../../components/sales/WarehouseAuditModal';
 const { Link, Text } = Typography;
 
 const DeliveryNotice = () => {
-  const [dataSource, setDataSource] = useState(deliveryNotices);
+  const [dataSource, setDataSource] = useMockData('deliveryNotices');
   const [loading, setLoading] = useState(false);
   const [formModal, setFormModal] = useState({ open: false, data: null });
   const [detailDrawer, setDetailDrawer] = useState({ open: false, data: null });
@@ -63,22 +63,12 @@ const DeliveryNotice = () => {
     },
     { title: '客户名称', dataIndex: 'customerName', width: 180, ellipsis: true },
     { 
-      title: '结算方式', 
-      dataIndex: 'settlementMethod', 
-      width: 100,
-      render: (val) => {
-          const colors = { '月结': 'blue', '现结': 'orange', '预存': 'green', '现金': 'gray' };
-          return <Tag color={colors[val]}>{val}</Tag>;
-      }
-    },
-    { 
       title: '发货产品/数量', 
       dataIndex: 'items', 
       width: 250, 
       ellipsis: true,
       render: (items) => items?.map(i => `${i.productName}/${i.currentQty}`).join(', ') 
     },
-    { title: '发货总额', dataIndex: 'totalAmount', width: 120, align: 'right', render: val => formatCurrency(val) },
     { title: '创建日期', dataIndex: 'createdAt', width: 120 },
     { title: '业务员', dataIndex: 'salesperson', width: 100 },
     { 
@@ -111,7 +101,8 @@ const DeliveryNotice = () => {
           '待仓库审批': { color: 'blue' },
           '待出库': { color: 'cyan' },
           '已审批': { color: 'green' },
-          '已出库': { color: 'purple' }
+          '已出库': { color: 'purple' },
+          '已完成(备货取消)': { color: 'magenta' }
         };
         const config = statusConfig[displayVal] || { color: 'default' };
         return <Tag color={config.color}>{displayVal}</Tag>;
@@ -137,9 +128,6 @@ const DeliveryNotice = () => {
               )}
               {status === '待仓库审批' && (
                   <Button type="link" size="small" onClick={() => { setActiveRecord(record); setWarehouseAuditOpen(true); }}>仓库审批</Button>
-              )}
-              {status === '已出库' && (
-                <Button type="link" size="small" onClick={() => message.info('跳转到出库单: CK-20260429-001')}>关联出库单</Button>
               )}
             </Space>
           );
@@ -222,12 +210,6 @@ const DeliveryNotice = () => {
             <div className="text-xs text-gray-500 mb-1">状态</div>
             <Select placeholder="选择状态" className="w-full" allowClear>
               {['草稿', '待财务审批', '待仓库审批', '已出库'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
-            </Select>
-          </Col>
-          <Col span={6}>
-            <div className="text-xs text-gray-500 mb-1">结算方式</div>
-            <Select placeholder="选择结算方式" className="w-full" allowClear>
-              {['月结', '现结', '预存', '现金'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
             </Select>
           </Col>
           <Col span={6}>

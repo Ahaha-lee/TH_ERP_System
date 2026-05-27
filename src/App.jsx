@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import CustomerManagement from './pages/CustomerManagement';
 import PriceStrategy from './pages/PriceStrategy';
+import PriceStrategyLedger from './pages/sales/PriceStrategyLedger';
 import RechargeLedger from './pages/RechargeLedger';
 import QuotationList from './pages/sales/QuotationList';
 import NormalOrderList from './pages/sales/NormalOrderList';
@@ -25,11 +26,14 @@ import SalesTargetPlan from './pages/sales/SalesTargetPlan';
 import SalesTargetStats from './pages/sales/SalesTargetStats';
 import DeliveryNotice from './pages/sales/DeliveryNotice';
 import EstimationOrder from './pages/sales/EstimationOrder';
+import UnshippedTrackingDashboard from './pages/sales/UnshippedTrackingDashboard';
 import SizePricingRule from './pages/settings/SizePricingRule';
 import InboundOrderList from './pages/inbound/InboundOrderList';
 import BatchManagement from './pages/inbound/BatchManagement';
 import OutboundOrderList from './pages/outbound/OutboundOrderList';
 import StocktakingList from './pages/inventory/StocktakingList';
+import StockAdjustmentList from './pages/inventory/StockAdjustmentList';
+import StockingPlanList from './pages/inventory/StockingPlanList';
 import LabelRule from './pages/settings/LabelRule';
 import MaterialStockLedger from './pages/inventory/MaterialStockLedger';
 import WarehouseList from './pages/warehouse/WarehouseList';
@@ -43,6 +47,7 @@ const { Header, Content, Sider } = Layout;
 const AppContent = () => {
   const location = useLocation();
   const selectedKey = location.pathname.startsWith('/customers') ? 'customers' : 
+                     location.pathname.startsWith('/price-strategy-ledger') ? 'price-strategy-ledger' :
                      location.pathname.startsWith('/price-strategy') ? 'price-strategy' : 
                      location.pathname.startsWith('/quotations') ? 'quotations' :
                      location.pathname.startsWith('/recharge-ledger') ? 'recharge-ledger' :
@@ -57,9 +62,12 @@ const AppContent = () => {
                      location.pathname.startsWith('/outbound') ? 'outbound' :
                      location.pathname.startsWith('/batch-management') ? 'batch-management' :
                      location.pathname.startsWith('/stocktaking') ? 'stocktaking' :
+                     location.pathname.startsWith('/stock-adjustment') ? 'stock-adjustment' :
+                     location.pathname.startsWith('/stocking-plan') ? 'stocking-plan' :
                      location.pathname.startsWith('/material-stock-ledger') ? 'material-stock-ledger' :
                      location.pathname.startsWith('/label-rule') ? 'label-rule' :
                      location.pathname.startsWith('/warehouses') ? 'warehouses' :
+                     location.pathname.startsWith('/unshipped-dashboard') ? 'unshipped-dashboard' :
                      location.pathname.startsWith('/delivery-notice') ? 'delivery-notice' :
                      location.pathname.startsWith('/receipt-management') ? 'receipt-management' :
                      location.pathname.startsWith('/claim-record-ledger') ? 'claim-record-ledger' : 'customers';
@@ -104,9 +112,9 @@ const AppContent = () => {
                   label: <Link to="/customers">客户管理</Link>,
                 },
                 {
-                  key: 'price-strategy',
-                  icon: <PercentageOutlined />,
-                  label: <Link to="/price-strategy">价格策略</Link>,
+                  key: 'price-strategy-ledger',
+                  icon: <TagsOutlined />,
+                  label: <Link to="/price-strategy-ledger">价格策略</Link>,
                 },
                 {
                   key: 'quotations',
@@ -127,6 +135,11 @@ const AppContent = () => {
                   key: 'delivery-notice',
                   icon: <FileTextOutlined />,
                   label: <Link to="/delivery-notice">发货通知单</Link>,
+                },
+                {
+                  key: 'unshipped-dashboard',
+                  icon: <DatabaseOutlined />,
+                  label: <Link to="/unshipped-dashboard">未发货产品追踪看板</Link>,
                 },
                 {
                   key: 'normal-order',
@@ -190,6 +203,16 @@ const AppContent = () => {
                   icon: <InteractionOutlined />,
                   label: <Link to="/stocktaking">盘点管理</Link>,
                 },
+                {
+                  key: 'stock-adjustment',
+                  icon: <FileTextOutlined />,
+                  label: <Link to="/stock-adjustment">库存调整单管理</Link>,
+                },
+                 {
+                   key: 'stocking-plan',
+                   icon: <FileTextOutlined />,
+                   label: <Link to="/stocking-plan">备货计划</Link>,
+                 },
               ]
             },
           ]}
@@ -199,7 +222,8 @@ const AppContent = () => {
         <Header className="bg-white px-6 h-12 flex items-center justify-between border-b border-gray-200 sticky top-0 z-10 w-full">
           <div className="text-gray-500 font-medium whitespace-nowrap">
             {selectedKey === 'customers' ? '客户管理' : 
-             selectedKey === 'price-strategy' ? '价格策略管理' : 
+             selectedKey === 'price-strategy' ? '价格策略' : 
+             selectedKey === 'price-strategy-ledger' ? '价格策略' :
              selectedKey === 'quotations' ? '报价管理' : 
              selectedKey === 'recharge-ledger' ? '充值订单台账' :
              selectedKey === 'normal-order' ? '普通销售订单' :
@@ -213,10 +237,12 @@ const AppContent = () => {
              selectedKey === 'outbound' ? '出库管理' :
              selectedKey === 'batch-management' ? '批次管理' :
              selectedKey === 'stocktaking' ? '盘点管理' :
+             selectedKey === 'stock-adjustment' ? '库存调整单管理' :
              selectedKey === 'material-stock-ledger' ? '物料库存台账' :
              selectedKey === 'warehouses' ? '仓库与货位管理' :
              selectedKey === 'receipt-management' ? '收款管理' :
              selectedKey === 'claim-record-ledger' ? '认领记录台账' :
+             selectedKey === 'unshipped-dashboard' ? '未发货产品追踪看板' :
              selectedKey === 'delivery-notice' ? '发货通知单' : '客户管理'}
           </div>
           <div className="flex items-center text-gray-500 text-sm">
@@ -230,6 +256,7 @@ const AppContent = () => {
             <Routes>
               <Route path="/customers" element={<CustomerManagement />} />
               <Route path="/price-strategy" element={<PriceStrategy />} />
+              <Route path="/price-strategy-ledger" element={<PriceStrategyLedger />} />
               <Route path="/quotations" element={<QuotationList />} />
               <Route path="/recharge-ledger" element={<RechargeLedger />} />
               <Route path="/sales-orders/normal" element={<NormalOrderList />} />
@@ -243,10 +270,13 @@ const AppContent = () => {
               <Route path="/outbound" element={<OutboundOrderList />} />
               <Route path="/batch-management" element={<BatchManagement />} />
               <Route path="/stocktaking" element={<StocktakingList />} />
+              <Route path="/stock-adjustment" element={<StockAdjustmentList />} />
+              <Route path="/stocking-plan" element={<StockingPlanList />} />
               <Route path="/material-stock-ledger" element={<MaterialStockLedger />} />
               <Route path="/label-rule" element={<LabelRule />} />
               <Route path="/warehouses" element={<WarehouseList />} />
               <Route path="/delivery-notice" element={<DeliveryNotice />} />
+              <Route path="/unshipped-dashboard" element={<UnshippedTrackingDashboard />} />
               <Route path="/receipt-management" element={<ReceiptManagement />} />
               <Route path="/claim-record-ledger" element={<ClaimRecordLedger />} />
               <Route path="/" element={<Navigate to="/sales-orders/normal" replace />} />

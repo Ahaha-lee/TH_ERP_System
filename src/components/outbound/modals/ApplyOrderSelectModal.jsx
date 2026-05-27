@@ -5,12 +5,12 @@ import { applyOrders } from '../../../mock/applyOrderMock';
 
 const ApplyOrderSelectModal = ({ open, onCancel, onSelect }) => {
   const [form] = Form.useForm();
-  const [data, setData] = useState(applyOrders);
+  const [data, setData] = useState(applyOrders.map(a => ({ ...a, status: '已完成' })));
   const [selectedRow, setSelectedRow] = useState(null);
 
   const handleSearch = () => {
     const values = form.getFieldsValue();
-    let filtered = [...applyOrders];
+    let filtered = applyOrders.map(a => ({ ...a, status: '已完成' }));
     if (values.type) filtered = filtered.filter(a => a.type === values.type);
     if (values.orderNo) filtered = filtered.filter(a => a.orderNo.includes(values.orderNo));
     setData(filtered);
@@ -56,7 +56,7 @@ const ApplyOrderSelectModal = ({ open, onCancel, onSelect }) => {
         <Form.Item>
           <Space>
             <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
-            <Button icon={<ReloadOutlined />} onClick={() => { form.resetFields(); setData(applyOrders); }}>重置</Button>
+            <Button icon={<ReloadOutlined />} onClick={() => { form.resetFields(); setData(applyOrders.map(a => ({ ...a, status: '已完成' }))); }}>重置</Button>
           </Space>
         </Form.Item>
       </Form>

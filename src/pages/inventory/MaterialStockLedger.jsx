@@ -80,10 +80,17 @@ const MaterialStockLedger = () => {
       ellipsis: true,
     },
     {
-      title: '规格型号',
+      title: '规格',
       dataIndex: 'spec',
-      width: 150,
+      width: 120,
       ellipsis: true,
+    },
+    {
+      title: '型号',
+      dataIndex: 'model',
+      width: 110,
+      ellipsis: true,
+      render: (v) => v || '-'
     },
     {
       title: '单位',
@@ -149,10 +156,17 @@ const MaterialStockLedger = () => {
       ellipsis: true,
     },
     {
-      title: '规格型号',
+      title: '规格',
       dataIndex: 'spec',
-      width: 150,
+      width: 120,
       ellipsis: true,
+    },
+    {
+      title: '型号',
+      dataIndex: 'model',
+      width: 110,
+      ellipsis: true,
+      render: (v) => v || '-'
     },
     {
       title: '计量单位',
@@ -198,10 +212,17 @@ const MaterialStockLedger = () => {
       ellipsis: true,
     },
     {
-      title: '规格型号',
+      title: '规格',
       dataIndex: 'spec',
-      width: 150,
+      width: 120,
       ellipsis: true,
+    },
+    {
+      title: '型号',
+      dataIndex: 'model',
+      width: 110,
+      ellipsis: true,
+      render: (v) => v || '-'
     },
     {
       title: '使用部门',

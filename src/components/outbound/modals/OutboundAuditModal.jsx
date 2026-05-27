@@ -51,35 +51,48 @@ const OutboundAuditModal = ({ open, record, onCancel, onConfirm }) => {
   const isOther = record?.type === '其他出库';
 
   const columns = [
+    { title: '序号', render: (_, __, i) => i + 1, width: 60 },
     { title: '物料编码', dataIndex: 'productCode', width: 120 },
     { title: '物料名称', dataIndex: 'productName', width: 150 },
-    { title: '规格', dataIndex: 'spec', width: 120 },
-    { title: '单位', dataIndex: 'unit', width: 80 },
+    { title: '规格', dataIndex: 'spec', width: 120, render: (v) => v || '-' },
+    { title: '单位', dataIndex: 'unit', width: 80, render: (v) => v || '-' },
     { 
       title: isOther ? '申请数量' : '应发数量', 
-      dataIndex: isOther ? 'applyQty' : 'quantity', 
+      dataIndex: isOther ? 'applyQty' : 'applyQty', 
       width: 100, 
       align: 'right',
-      render: (v, r) => v || r?.quantity || 0
+      render: (v, r) => {
+        const val = r.applyQty !== undefined && r.applyQty !== null ? r.applyQty : r.quantity;
+        return val !== undefined && val !== null ? val : '-';
+      }
     },
     { 
       title: '本次出库数量', 
       dataIndex: 'outboundQty', 
       width: 120,
       align: 'right',
-      render: (val) => <Text>{val}</Text>
+      render: (val, r) => {
+        const value = r.outboundQty !== undefined && r.outboundQty !== null ? r.outboundQty : r.quantity;
+        return <Text>{value !== undefined && value !== null ? value : '-'}</Text>;
+      }
     },
     { 
       title: '出库仓库', 
       dataIndex: 'warehouseName', 
       width: 150,
-      render: (val) => val || '-'
+      render: (val, r) => val || r.warehouseName || record?.warehouseName || '-'
+    },
+    { 
+      title: '批次号', 
+      dataIndex: 'batchNo', 
+      width: 150,
+      render: (val, r) => val || r.batchNo || '-'
     },
     { 
       title: '货位', 
       dataIndex: 'bin', 
       width: 120,
-      render: (val) => val || '-'
+      render: (val, r) => val || r.bin || r.location || '-'
     },
     { 
       title: '备注', 
@@ -103,21 +116,27 @@ const OutboundAuditModal = ({ open, record, onCancel, onConfirm }) => {
         <>
           <Descriptions bordered column={3} size="small" style={{ marginBottom: 24 }}>
             <Descriptions.Item label="出库单号">{record.orderNo}</Descriptions.Item>
+            <Descriptions.Item label="出库类型">
+              <span className="text-orange-500 font-medium">{record.type}</span>
+            </Descriptions.Item>
             {isSubcontract && (
               <>
-                <Descriptions.Item label="关联委外采购单">{record.relOrderNo || '-'}</Descriptions.Item>
-                <Descriptions.Item label="供应商名称">{record.partnerName || '-'}</Descriptions.Item>
+                <Descriptions.Item label="关联委外采购单">{record.relNoticeNo || record.relOrderNo || '-'}</Descriptions.Item>
+                <Descriptions.Item label="供应商">{record.partnerName || '-'}</Descriptions.Item>
+                <Descriptions.Item label="创建日期/出库日期">{record.createDate || record.outboundDate || record.date || '-'}</Descriptions.Item>
               </>
             )}
             {isOther && (
               <>
-                <Descriptions.Item label="其他出库类型">{record.category || '生产余料出料'}</Descriptions.Item>
-                <Descriptions.Item label="关联申请单">{record.relOrderNo || '-'}</Descriptions.Item>
-                <Descriptions.Item label="申请人">{record.applicant || '管理员'}</Descriptions.Item>
-                <Descriptions.Item label="申请部门">{record.department || '生产部'}</Descriptions.Item>
+                <Descriptions.Item label="其他出库类型">{record.usageType || record.category || '领款'}</Descriptions.Item>
+                <Descriptions.Item label="关联申请单">{record.relApplyNo || record.relOrderNo || '-'}</Descriptions.Item>
+                <Descriptions.Item label="申请人">{record.partnerName || record.applicant || '-'}</Descriptions.Item>
+                <Descriptions.Item label="申请部门">{record.deptName || record.department || '-'}</Descriptions.Item>
+                <Descriptions.Item label="创建日期/出库日期">{record.createDate || record.outboundDate || record.date || '-'}</Descriptions.Item>
               </>
             )}
-            <Descriptions.Item label="仓管员">{record.operator || '管理员'}</Descriptions.Item>
+            <Descriptions.Item label="仓管员">{record.handler || record.operator || '管理员'}</Descriptions.Item>
+            <Descriptions.Item label="状态">{record.status || '-'}</Descriptions.Item>
             <Descriptions.Item label="备注" span={3}>{record.remark || '-'}</Descriptions.Item>
           </Descriptions>
 

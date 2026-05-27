@@ -14,12 +14,11 @@ import {
   message, 
   Tag 
 } from 'antd';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { generateDeliveryNoticeNo, formatCurrency } from '../../utils/helpers';
 import { employees, customers } from '../../mock';
 import SalesOrderSelectModal from './SalesOrderSelectModal';
-import CustomerSelectModal from '../quotation/CustomerSelectModal';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -28,40 +27,51 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
   const [form] = Form.useForm();
   const [items, setItems] = useState([]);
   const [orderSelectOpen, setOrderSelectOpen] = useState(false);
-  const [customerSelectOpen, setCustomerSelectOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [fileList, setFileList] = useState([]);
+  const [selectedOrders, setSelectedOrders] = useState([]);
   const [attachmentList, setAttachmentList] = useState([]);
 
-  const onConfirmOrder = (order) => {
-    if (!order) return;
-    setSelectedOrder(order);
-    const customer = customers.find(c => c.id === order.customerId);
+  const onConfirmOrder = (incoming) => {
+    if (!incoming) return;
+    const orders = Array.isArray(incoming) ? incoming : [incoming];
+    if (orders.length === 0) return;
+    setSelectedOrders(orders);
     
+    const combinedOrderNos = orders.map(o => o.orderNo).join(', ');
+
     form.setFieldsValue({
-      orderNo: order.orderNo,
-      customerName: order.customerName,
-      settlementMethod: order.settlementMethod || '月结',
-      monthlyCycle: order.monthlyCycle || '30天',
-      prepaidBalance: customer?.prepaidBalance || (order.settlementMethod === '预存' ? 50000 : 0),
-      hasOverdue: customer?.hasOverdue || false,
-      expectDeliveryDate: order.expectDeliveryDate ? dayjs(order.expectDeliveryDate) : null
+      orderNo: combinedOrderNos
     });
     
-    const rawItems = order.items || order.processedItems || [];
-    const noticeItems = rawItems.map(item => ({
-      ...item,
-      id: `notice-${item.id || Math.random()}`,
-      productCode: item.productCode || item.materialCode || '-',
-      productName: item.productName || item.materialName || '-',
-      orderQty: item.quantity,
-      shippedQty: item.shippedQty || 0,
-      stock: item.stock || Math.floor(Math.random() * 500) + 50, 
-      pendingQty: item.quantity - (item.shippedQty || 0),
-      currentQty: item.quantity - (item.shippedQty || 0),
-      remark: ''
-    }));
-    setItems(noticeItems.filter(i => i.pendingQty > 0));
+    const allNoticeItems = [];
+    orders.forEach(order => {
+      const rawItems = order.items || order.processedItems || [];
+      rawItems.forEach(item => {
+        const stockQty = item.stock || Math.floor(Math.random() * 500) + 50;
+        const allocated = Math.floor(stockQty * 0.15);
+        const available = stockQty - allocated;
+        allNoticeItems.push({
+          ...item,
+          id: `notice-${order.orderNo}-${item.id || Math.random()}`,
+          sourceOrderNo: order.orderNo,
+          customerName: order.customerName || order.customer || '未知客户',
+          expectDeliveryDate: order.expectDeliveryDate || '-',
+          deliveryMethod: order.deliveryMethod || '物流',
+          productCode: item.productCode || item.materialCode || '-',
+          productName: item.productName || item.materialName || '-',
+          model: item.model || 'M-2026',
+          property: item.property || '标准属性',
+          orderQty: item.quantity,
+          shippedQty: item.shippedQty || 0,
+          stock: stockQty,
+          availableQty: available,
+          allocatedQty: allocated,
+          pendingQty: item.quantity - (item.shippedQty || 0),
+          currentQty: item.quantity - (item.shippedQty || 0),
+          remark: ''
+        });
+      });
+    });
+    setItems(allNoticeItems.filter(i => i.pendingQty > 0));
     setOrderSelectOpen(false);
   };
 
@@ -70,31 +80,26 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
       if (initialData) {
         form.setFieldsValue({
           ...initialData,
-          expectDeliveryDate: initialData.expectDeliveryDate ? dayjs(initialData.expectDeliveryDate) : null,
           createdAt: dayjs(initialData.createdAt)
         });
         setItems(initialData.items || []);
-        if (initialData.paymentImages) {
-            setFileList(initialData.paymentImages.map((img, i) => ({ uid: i, url: img.url, name: 'image.png', status: 'done' })));
+        if (initialData.orderNo) {
+          setSelectedOrders([{ orderNo: initialData.orderNo, customerName: initialData.customerName || '未知客户' }]);
         }
       } else if (initialOrder) {
         form.resetFields();
         form.setFieldValue('noticeNo', `FH-${dayjs().format('YYYYMMDD')}-${Math.floor(Math.random() * 9000 + 1000)}`);
         form.setFieldValue('createdAt', dayjs());
         onConfirmOrder(initialOrder);
-      } else { form.setFieldsValue({ noticeNo: `FH-${Math.floor(Math.random() * 9000 + 1000)}` });
+      } else { 
+        form.setFieldsValue({ noticeNo: `FH-${Math.floor(Math.random() * 9000 + 1000)}` });
         form.setFieldValue('createdAt', dayjs());
         setItems([]);
-        setSelectedOrder(null);
-        setFileList([]);
+        setSelectedOrders([]);
         setAttachmentList([]);
       }
     }
   }, [open, initialData, initialOrder, form]);
-
-  const settlementMethod = Form.useWatch('settlementMethod', form);
-  const hasOverdue = Form.useWatch('hasOverdue', form);
-  const prepaidBalance = Form.useWatch('prepaidBalance', form);
 
   const totalAmount = useMemo(() => {
       return items.reduce((sum, i) => sum + (i.currentQty * (i.unitPrice || 0)), 0);
@@ -106,39 +111,18 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
       if (items.every(i => i.currentQty <= 0)) return message.warning('本次发货数量必须大于0');
 
       if (submitType === 'submit') {
-          // Validation 1: Payment screenshot for cash/spot
-          if (['现结', '现金'].includes(settlementMethod) && fileList.length === 0) {
-              return message.error('现金/现结客户必须上传付款截图才能提交');
-          }
-
-          // Validation 2: Overdue for monthly
-          if (settlementMethod === '月结' && hasOverdue) {
-              return message.error('客户存在逾期未付账单，仅可保存草稿');
-          }
-
-          // Validation 3: Balance for prepaid
-          if (settlementMethod === '预存' && prepaidBalance < totalAmount) {
-              return message.error('余额不足，仅可保存草稿');
-          }
-
-          // Determine Status
-          let nextStatus = '';
-          if (['现结', '现金'].includes(settlementMethod)) {
-              nextStatus = '待财务审批';
-          } else {
-              nextStatus = '待仓库审批';
-          }
+          // Default to 待仓库审批 as there are no customer/payment-based conditional validation requirements
+          const nextStatus = '待仓库审批';
 
           onSuccess({
             ...values,
             createdAt: values.createdAt.format('YYYY-MM-DD'),
-            expectDeliveryDate: values.expectDeliveryDate.format('YYYY-MM-DD'),
             items,
             status: nextStatus,
             approvalStatus: '待审批',
             auditResult: '-',
             totalAmount,
-            paymentImages: fileList.map(f => ({ url: f.url || f.thumbUrl || 'https://placehold.co/100x100?text=Image' })),
+            paymentImages: [],
             attachments: attachmentList.map(f => ({ name: f.name, url: f.url || f.thumbUrl || 'file_url', status: 'done' }))
           });
       } else {
@@ -146,13 +130,12 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
           onSuccess({
             ...values,
             createdAt: values.createdAt.format('YYYY-MM-DD'),
-            expectDeliveryDate: values.expectDeliveryDate.format('YYYY-MM-DD'),
             items,
             status: '草稿',
             approvalStatus: '-',
             auditResult: '-',
             totalAmount,
-            paymentImages: fileList.map(f => ({ url: f.url || f.thumbUrl || 'https://placehold.co/100x100?text=Image' })),
+            paymentImages: [],
             attachments: attachmentList.map(f => ({ name: f.name, url: f.url || f.thumbUrl || 'file_url', status: 'done' }))
           });
       }
@@ -161,10 +144,44 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
 
   const columns = [
     { title: '序号', render: (_, __, index) => index + 1, width: 60 },
+    { title: '销售订单号', dataIndex: 'sourceOrderNo', width: 145, render: (v) => v || form.getFieldValue('orderNo') || '-' },
+    { 
+      title: '客户名称（编码/名称）', 
+      dataIndex: 'customerName', 
+      width: 180,
+      render: (v, rec) => {
+        const custName = v || form.getFieldValue('customerName') || '未知客户';
+        const custCode = rec?.customerCode || 'CUST-001';
+        return `${custCode}/${custName}`;
+      }
+    },
+    { title: '期望发货日期', dataIndex: 'expectDeliveryDate', width: 110, render: (v) => <span className="font-mono text-xs text-amber-600">{v}</span> },
+    { 
+      title: '发货方式', 
+      dataIndex: 'deliveryMethod', 
+      width: 110, 
+      render: (text, record) => (
+        <Select 
+          value={text || '物流'} 
+          style={{ width: '100%', fontSize: '12px' }}
+          onChange={val => setItems(items.map(item => item.id === record.id ? { ...item, deliveryMethod: val } : item))}
+          options={[
+            { label: '物流', value: '物流' },
+            { label: '快递', value: '快递' },
+            { label: '自提', value: '自提' },
+            { label: '送货', value: '送货' }
+          ]}
+        />
+      )
+    },
     { title: '产品编码', dataIndex: 'productCode' },
     { title: '产品名称', dataIndex: 'productName' },
     { title: '规格', dataIndex: 'spec' },
-    { title: '当前库存', dataIndex: 'stock', width: 90, render: (v) => <Text type="secondary">{v}</Text> },
+    { title: '型号', dataIndex: 'model', width: 100, render: (v) => <span className="text-gray-600">{v || '-'}</span> },
+    { title: '属性', dataIndex: 'property', width: 100, render: (v) => <span className="text-gray-600">{v || '-'}</span> },
+    { title: '库存数量', dataIndex: 'stock', width: 90, render: (v) => <Text type="secondary">{v !== undefined ? v : 0}</Text> },
+    { title: '可用数量', dataIndex: 'availableQty', width: 90, render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock || 0) * 0.85)}</span> },
+    { title: '占用数量', dataIndex: 'allocatedQty', width: 90, render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock || 0) * 0.15)}</span> },
     { title: '订单数量', dataIndex: 'orderQty', width: 90 },
     { title: '已发货数量', dataIndex: 'shippedQty', width: 100 },
     { title: '未发货数量', dataIndex: 'pendingQty', width: 100 },
@@ -209,71 +226,26 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
       <Form form={form} layout="vertical">
         <div className="grid grid-cols-2 gap-x-8">
           <Form.Item label="发货通知单号" name="noticeNo"><Input disabled /></Form.Item>
-          <Form.Item label="销售订单号" name="orderNo" rules={[{ required: true, message: '请选择销售订单' }]}>
-            <Input 
-              readOnly 
-              onClick={() => setOrderSelectOpen(true)} 
-              placeholder="选择备货中的订单"
-              suffix={<Button type="link" size="small" onClick={(e) => { e.stopPropagation(); setOrderSelectOpen(true); }}>选择</Button>} 
-            />
-          </Form.Item>
-          <Form.Item label="客户名称" name="customerName" rules={[{ required: true, message: '请选择客户' }]}>
-            <Input 
-              readOnly 
-              placeholder="请选择客户"
-              onClick={() => setCustomerSelectOpen(true)}
-              suffix={<Button type="link" size="small" onClick={(e) => { e.stopPropagation(); setCustomerSelectOpen(true); }}>选择</Button>}
-            />
-          </Form.Item>
-          <Form.Item label="结算方式" name="settlementMethod">
-            <div className="flex items-center gap-2 mt-1">
-                <Tag color={settlementMethod === '月结' ? 'blue' : settlementMethod === '现结' ? 'orange' : settlementMethod === '预存' ? 'green' : 'gray'}>
-                    {settlementMethod || '-'}
-                </Tag>
-                {hasOverdue && <Tag color="red">存在逾期</Tag>}
-            </div>
-          </Form.Item>
           
-          {settlementMethod === '月结' && (
-            <Form.Item label="月结周期" name="monthlyCycle"><Input disabled /></Form.Item>
-          )}
-          {settlementMethod === '预存' && (
-            <Form.Item label="预存余额" name="prepaidBalance">
-              <InputNumber className="w-full" disabled formatter={val => formatCurrency(val)} />
-            </Form.Item>
-          )}
-          
-          <Form.Item label="期望发货日期" name="expectDeliveryDate" rules={[{ required: true, message: '请选择日期' }]}>
-            <DatePicker className="w-full" disabled />
-          </Form.Item>
           <Form.Item label="业务员" name="salesperson" initialValue="管理员">
             <Select>{employees?.map(e => <Select.Option key={e.id} value={e.name}>{e.name}</Select.Option>)}</Select>
           </Form.Item>
-          <Form.Item label="发货方式" name="deliveryMethod" rules={[{ required: true, message: '请选择方式' }]}>
-            <Select>
-              <Select.Option value="物流">物流</Select.Option>
-              <Select.Option value="自提">自提</Select.Option>
-              <Select.Option value="其他">其他</Select.Option>
-            </Select>
-          </Form.Item>
+          
           <Form.Item label="创建日期" name="createdAt"><DatePicker className="w-full" disabled /></Form.Item>
+          <Form.Item name="orderNo" style={{ display: 'none' }} rules={[{ required: true, message: '请点击右侧按钮选择销售订单并加载明细' }]}><Input /></Form.Item>
         </div>
 
-        {['现结', '现金'].includes(settlementMethod) && (
-          <Form.Item label="付款凭证 (必填)" required extra="请上传至少一张支付核销截图">
-            <Upload 
-                listType="picture-card" 
-                fileList={fileList}
-                onChange={({ fileList: fl }) => setFileList(fl)}
-                beforeUpload={() => false}
-            >
-              <div>
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>上传</div>
-              </div>
-            </Upload>
-          </Form.Item>
-        )}
+        <div className="mb-4 bg-gray-50 p-4 rounded-lg border border-dashed flex items-center justify-between">
+            <div>
+                <div className="text-sm font-semibold text-gray-800">关联销售订单</div>
+                <div className="text-xs text-gray-500 mt-1">
+                    {selectedOrders.length > 0 ? `已关联订单: ${selectedOrders.map(o => o.orderNo).join(', ')} (${selectedOrders.map(o => o.customerName || '未知客户').join(', ')})` : '尚未选择销售订单（请先选择订单以自动加载待发货产品明细）'}
+                </div>
+            </div>
+            <Button type="primary" onClick={() => setOrderSelectOpen(true)}>
+                {selectedOrders.length > 0 ? '更换销售订单' : '选择销售订单'}
+            </Button>
+        </div>
 
         <Form.Item label="备注" name="remark">
           <TextArea rows={2} maxLength={250} showCount placeholder="输入通知单备注" />
@@ -290,7 +262,7 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
         </Form.Item>
 
         <Divider titlePlacement="left" plain>发货产品明细</Divider>
-        <Table dataSource={items} columns={columns} rowKey="id" size="small" pagination={false} scroll={{ x: 1000 }} />
+        <Table dataSource={items} columns={columns} rowKey="id" size="small" pagination={false} scroll={{ x: 1300 }} />
         
         <div className="mt-4 p-3 bg-blue-50 rounded text-right">
             <Text type="secondary">本次发货总额预估：</Text>
@@ -298,19 +270,7 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
         </div>
       </Form>
 
-      <SalesOrderSelectModal open={orderSelectOpen} onCancel={() => setOrderSelectOpen(false)} onConfirm={onConfirmOrder} />
-      
-      <CustomerSelectModal 
-        open={customerSelectOpen} 
-        onCancel={() => setCustomerSelectOpen(false)} 
-        onConfirm={(customer) => {
-          form.setFieldsValue({
-            customerName: customer.name,
-            settlementMethod: customer.settlementMethod || '月结'
-          });
-          setCustomerSelectOpen(false);
-        }} 
-      />
+      <SalesOrderSelectModal open={orderSelectOpen} onCancel={() => setOrderSelectOpen(false)} onConfirm={onConfirmOrder} multiple={true} />
     </Modal>
   );
 };

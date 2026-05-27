@@ -15,7 +15,8 @@ import {
     Typography, 
     Divider, 
     message,
-    Checkbox
+    Checkbox,
+    Switch
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -37,11 +38,12 @@ const ExchangeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
     useEffect(() => {
         if (open) {
             if (record) {
-                form.setFieldsValue({ ...record, orderDate: dayjs(record.orderDate) });
+                form.setFieldsValue({ ...record, urgency: record.urgency || (record.isUrgent ? '紧急' : '一般'), orderDate: dayjs(record.orderDate) });
                 // In record, we split items by some flag if they are return or exchange
                 setReturnItems(record.items?.filter(i => i.action === '退回') || []);
                 setExchangeItems(record.items?.filter(i => i.action === '换出') || []);
-            } else { form.setFieldsValue({ orderNo: `ORDER-预览`, orderDate: dayjs(), salesperson: '管理员' });
+            } else { 
+                form.setFieldsValue({ orderNo: `ORDER-预览`, orderDate: dayjs(), salesperson: '管理员', urgency: '一般' });
                 setReturnItems([]);
                 setExchangeItems([]);
                 setSelectedReturnKeys([]);
@@ -240,6 +242,14 @@ const ExchangeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                     </Col>
                     <Col span={6}><Form.Item name="customerName" label="客户"><Input readOnly disabled /></Form.Item></Col>
                     <Col span={6}><Form.Item name="orderDate" label="订单日期"><DatePicker style={{ width: '100% '}} /></Form.Item></Col>
+                    <Col span={6}>
+                        <Form.Item name="urgency" label="紧急程度" rules={[{ required: true, message: '请选择紧急程度' }]}>
+                            <Select placeholder="选择紧急程度">
+                                <Select.Option value="紧急">紧急</Select.Option>
+                                <Select.Option value="一般">一般</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </Col>
                 </Row>
 
                 <div className="mb-4">

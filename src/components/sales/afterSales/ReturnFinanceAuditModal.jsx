@@ -13,7 +13,8 @@ import {
     Row, 
     Col,
     InputNumber,
-    Space
+    Space,
+    Tag
 } from 'antd';
 
 const { TextArea } = Input;
@@ -123,6 +124,11 @@ const ReturnFinanceAuditModal = ({ open, record, onCancel, onSuccess, readonly }
                             <Descriptions.Item label="申请日期">{record.date || record.orderDate}</Descriptions.Item>
                             <Descriptions.Item label="项目（子公司）">{record.subsidiary || '默认子公司'}</Descriptions.Item>
                             <Descriptions.Item label="业务员">{record.salesperson}</Descriptions.Item>
+                            <Descriptions.Item label="紧急程度" span={3}>
+                                <Tag color={(record.urgency === '紧急' || record.isUrgent) ? "red" : "default"}>
+                                    {record.urgency || (record.isUrgent ? '紧急' : '一般')}
+                                </Tag>
+                            </Descriptions.Item>
                             <Descriptions.Item label="退货原因" span={3}>{record.returnReason}</Descriptions.Item>
                             <Descriptions.Item label="客户备注" span={3}>{record.customerRemark || record.remark || '-'}</Descriptions.Item>
                         </Descriptions>

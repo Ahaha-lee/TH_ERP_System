@@ -17,10 +17,12 @@ import dayjs from 'dayjs';
 import { 
   salesOrders as mockSalesOrders, 
   rechargeOrders as mockRechargeOrders, 
+  consumptionRecords as mockConsumptionRecords,
   auditLogs as mockAuditLogs,
   salespersonHistory as mockSalespersonHistory,
   customerCategories,
-  priceVersions
+  priceVersions,
+  useMockData
 } from '../mock';
 import { getDiscountRate, formatCurrency } from '../utils/helpers';
 
@@ -29,6 +31,7 @@ const { Text, Link } = Typography;
 const CustomerDetailDrawer = ({ open, customer, onClose }) => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [allPriceStrategies] = useMockData('priceStrategiesLedger');
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -61,8 +64,118 @@ const CustomerDetailDrawer = ({ open, customer, onClose }) => {
   // Filter mock data for this customer
   const salesOrders = mockSalesOrders.filter(o => o.customerId === customer.id);
   const rechargeOrders = mockRechargeOrders.filter(o => o.customerId === customer.id);
+  const consumptionRecordsFiltered = mockConsumptionRecords.filter(r => r.customerId === customer.id);
   const auditLogs = mockAuditLogs.filter(l => l.customerId === customer.id);
   const salespersonHistory = mockSalespersonHistory.filter(h => h.customerId === customer.id);
+
+  const accumulatedRecharge = rechargeOrders.reduce((sum, r) => sum + (r.status === '生效' ? r.amount : 0), 0);
+  const accumulatedConsumption = consumptionRecordsFiltered.reduce((sum, r) => sum + r.amount, 0);
+
+  const rechargeColumns = [
+    { title: '序号', dataIndex: 'index', align: 'center', width: 60, render: (_, __, i) => i + 1 },
+    { title: '充值流水号', dataIndex: 'orderNo', align: 'center' },
+    { title: '充值金额', dataIndex: 'amount', align: 'center', render: (val) => <Text className="text-green-600 font-medium">{formatCurrency(val)}</Text> },
+    { title: '充值时间', dataIndex: 'date', align: 'center' },
+    { title: '业务员', dataIndex: 'operator', align: 'center' },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      align: 'center',
+      render: (status) => (
+        <Tag color={status === '生效' ? 'green' : 'default'}>
+          {status === '生效' ? '生效' : '未生效'}
+        </Tag>
+      )
+    },
+    { title: '备注', dataIndex: 'remark', align: 'center', ellipsis: true },
+  ];
+
+  const consumptionColumns = [
+    { title: '序号', dataIndex: 'index', align: 'center', width: 60, render: (_, __, i) => i + 1 },
+    { title: '关联订单号', dataIndex: 'orderNo', align: 'center' },
+    { title: '消费金额', dataIndex: 'amount', align: 'center', render: (val) => <Text className="text-red-600 font-medium">{formatCurrency(val)}</Text> },
+    { title: '消费类型', dataIndex: 'type', align: 'center' },
+    { title: '消费时间', dataIndex: 'time', align: 'center' },
+  ];
+
+  const filteredStrategies = (allPriceStrategies || []).filter(s => {
+    if (s.customerCategory && s.customerCategory === customer.type) return true;
+    if (s.customerLevel && s.customerLevel === customer.level) return true;
+    if (s.customerRegion && (s.customerRegion === customer.region || s.customerRegion.split('/').some(r => r.trim() === customer.region))) return true;
+    if (s.customerName === customer.name || s.customerCode === customer.code) return true;
+    return false;
+  });
+
+  const strategyColumns = [
+    {
+      title: '价格策略编号',
+      dataIndex: 'code',
+      key: 'code',
+      width: 130,
+    },
+    {
+      title: '策略维度',
+      key: 'strategyDimension',
+      width: 110,
+      render: (_, record) => {
+        if (record.strategyDimension) {
+          return record.strategyDimension === '产品' ? '客户+产品' : record.strategyDimension;
+        }
+        if (record.customerCategory) return '客户类型';
+        if (record.customerLevel) return '客户等级';
+        if (record.customerRegion) return '客户区域';
+        if (record.productInfo) return '客户+产品';
+        return '-';
+      }
+    },
+    {
+      title: '维度值',
+      key: 'dimensionValue',
+      render: (_, record) => {
+        if (record.customerCategory) return record.customerCategory;
+        if (record.customerLevel) return record.customerLevel;
+        if (record.customerRegion) return record.customerRegion;
+        if (record.productInfo) return record.productInfo;
+        const val = record.dimensionValue;
+        if (Array.isArray(val)) return val.join(', ');
+        return val || '-';
+      }
+    },
+    {
+      title: '优惠折扣率',
+      dataIndex: 'discountRate',
+      key: 'discountRate',
+      width: 110,
+      align: 'center',
+      render: (val) => val !== undefined && val !== null ? `${Math.round((1 - val) * 100)}%` : '-',
+    },
+    {
+      title: '生效日期',
+      dataIndex: 'effectiveDate',
+      key: 'effectiveDate',
+      width: 110,
+    },
+    {
+      title: '失效日期',
+      dataIndex: 'expiryDate',
+      key: 'expiryDate',
+      width: 110,
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 90,
+      align: 'center',
+      render: (status) => {
+        let color = 'default';
+        if (status === '生效') color = 'green';
+        if (status === '待生效') color = 'blue';
+        if (status === '失效') color = 'red';
+        return <Tag color={color}>{status || '未知'}</Tag>;
+      }
+    }
+  ];
 
   const items = [
     {
@@ -74,23 +187,35 @@ const CustomerDetailDrawer = ({ open, customer, onClose }) => {
             <Descriptions.Item label="客户编码">{customer.code}</Descriptions.Item>
             <Descriptions.Item label="客户名称">{customer.name}</Descriptions.Item>
             <Descriptions.Item label="客户类型">{customer.type}</Descriptions.Item>
-            <Descriptions.Item label="当前适用折扣率">
-              <Text type="danger" strong>{discountRate}</Text>
-            </Descriptions.Item>
+            <Descriptions.Item label="客户等级">{customer.level || '-'}</Descriptions.Item>
             <Descriptions.Item label="结算方式">{customer.settlementMethod}</Descriptions.Item>
             {customer.settlementMethod === '月结' && (
-              <Descriptions.Item label="月结周期">{customer.monthlyCycle}</Descriptions.Item>
+              <Descriptions.Item label="月结周期" span={2}>{customer.monthlyCycle}</Descriptions.Item>
             )}
             {customer.settlementMethod === '预存' && (
-              <Descriptions.Item label="预存余额">{formatCurrency(customer.prepaidBalance)}</Descriptions.Item>
+              <Descriptions.Item label="预存余额" span={2}>{formatCurrency(customer.prepaidBalance)}</Descriptions.Item>
             )}
-            <Descriptions.Item label="行政区划" span={2}>{customer.region?.join('/') || '-'}</Descriptions.Item>
+            <Descriptions.Item label="客户区域" span={2}>
+              {customer.region ? (Array.isArray(customer.region) ? customer.region.join('/') : customer.region) : '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="详细地址">{customer.address || '-'}</Descriptions.Item>
             <Descriptions.Item label="业务员">{customer.salesperson}</Descriptions.Item>
             <Descriptions.Item label="联系人">{customer.contactName}</Descriptions.Item>
             <Descriptions.Item label="联系电话">{customer.contactPhone}</Descriptions.Item>
+            <Descriptions.Item label="物流联系人">{customer.logisticsContact || '-'}</Descriptions.Item>
+            <Descriptions.Item label="物流联系人电话">{customer.logisticsContactPhone || '-'}</Descriptions.Item>
+            <Descriptions.Item label="物流地址" span={2}>{customer.logisticsAddress || '-'}</Descriptions.Item>
             <Descriptions.Item label="备注" span={2}>{customer.remark || '-'}</Descriptions.Item>
           </Descriptions>
+
+          <CardTitle title="价格策略" />
+          <Table rowKey="id"
+            columns={strategyColumns}
+            dataSource={filteredStrategies}
+            pagination={false}
+            size="small"
+            locale={{ emptyText: '暂无适用的价格策略' }}
+          />
 
           <div className="flex justify-between items-center mb-4 mt-8">
             <CardTitle title="反馈记录" noMargin />
@@ -172,36 +297,76 @@ const CustomerDetailDrawer = ({ open, customer, onClose }) => {
     },
     {
       key: '4',
-      label: '充值订单',
+      label: '账户流水记录',
       disabled: customer.settlementMethod !== '预存',
       children: (
-        <div>
-          <div className="mb-4 text-right">
-            <Text>合计预存余额：</Text>
-            <Text type="danger" strong className="text-lg">{formatCurrency(customer.prepaidBalance)}</Text>
+        <div className="bg-gray-50 p-6 -m-4 min-h-[600px]">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <Typography.Title level={5} className="mb-6 !mt-0 flex items-center">
+              <div className="w-1 h-4 bg-blue-600 mr-2 rounded-full" />
+              账户流水记录
+            </Typography.Title>
+
+            {/* Assets Stats */}
+            <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="bg-white p-4 rounded border border-gray-100 shadow-sm flex flex-col items-center justify-center">
+                <Text className="text-gray-400 text-xs mb-1">累计充值金额</Text>
+                <Text className="text-xl font-bold text-green-600">{formatCurrency(accumulatedRecharge)}</Text>
+              </div>
+              <div className="bg-white p-4 rounded border border-gray-100 shadow-sm flex flex-col items-center justify-center">
+                <Text className="text-gray-400 text-xs mb-1">累计消费金额</Text>
+                <Text className="text-xl font-bold text-red-500">{formatCurrency(accumulatedConsumption)}</Text>
+              </div>
+              <div className="bg-white p-4 rounded border border-gray-100 shadow-sm flex flex-col items-center justify-center">
+                <Text className="text-gray-400 text-xs mb-1">当前账户余额</Text>
+                <Text className="text-xl font-bold text-blue-600">{formatCurrency(customer.prepaidBalance)}</Text>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <div className="flex items-center mb-3">
+                  <Text strong className="text-gray-600">充值记录</Text>
+                </div>
+                <Table 
+                  dataSource={rechargeOrders}
+                  columns={rechargeColumns}
+                  pagination={false}
+                  size="small"
+                  bordered
+                  rowKey="id"
+                  className="custom-white-table"
+                  rowClassName="text-center"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center mb-3">
+                  <Text strong className="text-gray-600">消费记录</Text>
+                </div>
+                <Table 
+                  dataSource={consumptionRecordsFiltered}
+                  columns={consumptionColumns}
+                  pagination={false}
+                  size="small"
+                  bordered
+                  rowKey="id"
+                  className="custom-white-table"
+                  rowClassName="text-center"
+                />
+              </div>
+            </div>
           </div>
-          <Table 
-            dataSource={rechargeOrders}
-            columns={[
-              { title: '充值单号', dataIndex: 'orderNo' },
-              { title: '日期', dataIndex: 'date' },
-              { title: '金额', dataIndex: 'amount', render: (val) => formatCurrency(val) },
-              { 
-                title: '状态', 
-                dataIndex: 'status',
-                render: (status) => {
-                  let color = 'orange';
-                  if (status === '审批通过') color = 'green';
-                  if (status === '审批拒绝') color = 'red';
-                  return <Tag color={color}>{status}</Tag>;
-                }
-              },
-              { title: '业务员', dataIndex: 'salesperson' },
-              { title: '备注', dataIndex: 'remark', ellipsis: true },
-            ]}
-            size="small"
-            rowKey={(record) => record?.id || record?.key || record?.orderNo}
-          />
+          <style>{`
+            .custom-white-table .ant-table-thead > tr > th {
+              background-color: #f5f5f5 !important;
+              text-align: center !important;
+              font-weight: 500 !important;
+            }
+            .custom-white-table .ant-table-tbody > tr > td {
+              text-align: center !important;
+            }
+          `}</style>
         </div>
       ),
     },
@@ -222,7 +387,10 @@ const CustomerDetailDrawer = ({ open, customer, onClose }) => {
         />
       ),
     },
-  ];
+  ].filter(item => {
+    if (item.key === '4') return customer.settlementMethod === '预存';
+    return true;
+  });
 
   return (
     <Drawer forceRender

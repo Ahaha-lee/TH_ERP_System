@@ -75,20 +75,33 @@ const CustomerEditModal = ({ open, customer, onClose, onSuccess }) => {
               </Form.Item>
 
               <Form.Item
-                name="region"
-                label="客户行政区划"
+                name="level"
+                label="客户等级"
+                rules={[{ required: true, message: '请选择客户等级' }]}
               >
-                <Cascader
-                  options={[
-                    {
-                      value: '广东',
-                      label: '广东',
-                      children: [
-                        { value: '广州', label: '广州', children: [{ value: '天河区', label: '天河区' }] },
-                      ]
-                    },
-                  ]}
-                />
+                <Select disabled placeholder="请选择客户等级">
+                  <Select.Option value="S级">S级</Select.Option>
+                  <Select.Option value="A级">A级</Select.Option>
+                  <Select.Option value="B级">B级</Select.Option>
+                  <Select.Option value="C级">C级</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="region"
+                label="客户区域"
+                rules={[{ required: true, message: '请选择客户区域' }]}
+              >
+                <Select disabled placeholder="请选择客户区域">
+                  <Select.Option value="华东">华东</Select.Option>
+                  <Select.Option value="华南">华南</Select.Option>
+                  <Select.Option value="华北">华北</Select.Option>
+                  <Select.Option value="西南">西南</Select.Option>
+                  <Select.Option value="西北">西北</Select.Option>
+                  <Select.Option value="东北">东北</Select.Option>
+                  <Select.Option value="华中">华中</Select.Option>
+                  <Select.Option value="全国">全国</Select.Option>
+                </Select>
               </Form.Item>
 
               <Form.Item
@@ -120,6 +133,33 @@ const CustomerEditModal = ({ open, customer, onClose, onSuccess }) => {
                 rules={[{ required: true, message: '请输入联系电话' }]}
               >
                 <Input />
+              </Form.Item>
+
+              <Form.Item
+                name="logisticsAddress"
+                label="物流地址"
+                rules={[{ required: true, message: '请输入物流地址' }]}
+              >
+                <Input placeholder="请输入物流地址" />
+              </Form.Item>
+
+              <Form.Item
+                name="logisticsContact"
+                label="物流联系人"
+                rules={[{ required: true, message: '请输入物流联系人' }]}
+              >
+                <Input placeholder="请输入物流联系人" />
+              </Form.Item>
+
+              <Form.Item
+                name="logisticsContactPhone"
+                label="物流联系人电话"
+                rules={[
+                  { required: true, message: '请输入物流联系人电话' },
+                  { pattern: /^1[3-9]\d{9}$|^\d{3,4}-\d{7,8}$/, message: '请输入正确的手机号或座机号' }
+                ]}
+              >
+                <Input placeholder="请输入物流联系人电话" />
               </Form.Item>
             </div>
 

@@ -54,6 +54,10 @@ const ExchangeOrderList = () => {
         setTimeout(() => {
             let filtered = [...allData];
             if (values.exchangeNo) filtered = filtered.filter(item => item.exchangeNo.includes(values.exchangeNo));
+            if (values.orderNo) filtered = filtered.filter(item => item.orderNo && item.orderNo.includes(values.orderNo));
+            if (values.customerName) filtered = filtered.filter(item => item.customerName && item.customerName.includes(values.customerName));
+            if (values.status) filtered = filtered.filter(item => item.status === values.status);
+            if (values.returnStatus) filtered = filtered.filter(item => item.returnStatus === values.returnStatus);
             setDisplayData(filtered);
             setLoading(false);
         }, 500);
@@ -70,6 +74,20 @@ const ExchangeOrderList = () => {
         });
     };
 
+    const handleConfirmOutbound = (record) => {
+        Modal.confirm({
+            title: '确认出库',
+            content: '确定该换货单下所有产品已完成备货并进行出库吗？',
+            onOk: () => {
+                mockData.upsert('exchanges', {
+                    ...record,
+                    status: '已发货'
+                });
+                message.success('已确认全部产品备货并执行出库，订单状态更新为已发货');
+            }
+        });
+    };
+
     const columns = [
         { title: '序号', width: 60, render: (_, __, i) => i + 1 },
         { 
@@ -81,6 +99,15 @@ const ExchangeOrderList = () => {
             title: '审批详情', 
             width: 120,
             render: (_, record) => <Link onClick={() => setViewAuditModal({ open: true, record })}>查看审批详情</Link> 
+        },
+        { 
+            title: '紧急程度', 
+            dataIndex: 'urgency', 
+            width: 120,
+            render: (val, record) => {
+                const value = val || (record.isUrgent ? '紧急' : '一般');
+                return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+            }
         },
         { 
             title: '原销售订单号', 
@@ -103,8 +130,8 @@ const ExchangeOrderList = () => {
             title: '换货订单状态', 
             dataIndex: 'status',
             render: (status) => {
-                const colors = { '草稿': 'default', '待发货': 'orange', '已发货': 'blue', '已完成': 'green' };
-                return <Tag color={colors[status]}>{status}</Tag>;
+                const colors = { '草稿': 'default', '待发货': 'orange', '备货中': 'purple', '已发货': 'blue', '已完成': 'green' };
+                return <Tag color={colors[status] || 'default'}>{status}</Tag>;
             }
         },
         { 
@@ -118,7 +145,7 @@ const ExchangeOrderList = () => {
         { 
             title: '操作', 
             fixed: 'right', 
-            width: 180,
+            width: 250,
             render: (_, record) => {
                 const { status, auditResult } = record;
                 const isRejected = auditResult === '审批拒绝' && status === '待发货';
@@ -137,8 +164,8 @@ const ExchangeOrderList = () => {
                                 {record.exchangeNo !== 'EX20250429003' && (
                                     <Button type="link" size="small" icon={<CheckCircleOutlined />} onClick={() => setWarehouseAuditModal({ open: true, record })}>仓库审批</Button>
                                 )}
-                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
-                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库进度</Button>
+                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库状态</Button>
+                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库状态</Button>
                             </>
                         )}
                         {isRejected && (
@@ -149,16 +176,22 @@ const ExchangeOrderList = () => {
                                 )}
                             </>
                         )}
+                        {status === '备货中' && (
+                            <>
+                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库状态</Button>
+                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库状态</Button>
+                            </>
+                        )}
                         {status === '已发货' && (
                             <>
-                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
-                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库进度</Button>
+                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库状态</Button>
+                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库状态</Button>
                             </>
                         )}
                         {status === '已完成' && (
                             <>
-                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库进度</Button>
-                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库进度</Button>
+                                <Button type="link" size="small" onClick={() => setInboundModal({ open: true, record })}>查看入库状态</Button>
+                                <Button type="link" size="small" onClick={() => setOutboundModal({ open: true, record })}>查看出库状态</Button>
                             </>
                         )}
                     </Space>
@@ -177,7 +210,7 @@ const ExchangeOrderList = () => {
                     <Col span={6}>
                         <Form.Item name="status" label="订单状态">
                             <Select placeholder="选择状态" allowClear>
-                                {['草稿', '待发货', '已发货', '已完成'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
+                                {['草稿', '待发货', '备货中', '已发货', '已完成'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
                             </Select>
                         </Form.Item>
                     </Col>
@@ -240,7 +273,7 @@ const ExchangeOrderList = () => {
                 onSuccess={(audited) => {
                     mockData.upsert('exchanges', { 
                         ...audited, 
-                        status: audited.auditResult === '审批通过' ? '待发货' : audited.status, 
+                        status: audited.auditResult === '审批通过' ? '备货中' : audited.status, 
                         returnStatus: audited.auditResult === '审批通过' ? '待收货' : audited.returnStatus 
                     });
                     setAuditModal({ open: false, record: null });
@@ -251,6 +284,7 @@ const ExchangeOrderList = () => {
                 open={inboundModal.open} 
                 record={inboundModal.record} 
                 onCancel={() => setInboundModal({ open: false, record: null })} 
+                type="inbound"
             />
 
             <OutboundProgressModal 
@@ -266,7 +300,7 @@ const ExchangeOrderList = () => {
                 onSuccess={(audited) => {
                     mockData.upsert('exchanges', { 
                         ...audited, 
-                        status: audited.warehouseAuditResult === '通过' ? '已审核' : audited.status
+                        status: audited.warehouseAuditResult === '通过' ? '备货中' : audited.status
                     });
                     setWarehouseAuditModal({ open: false, record: null });
                 }}

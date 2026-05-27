@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Table, Input, Form, Space, Button, Tag, Select } from 'antd';
+import { Modal, Table, Input, Form, Space, Button, Tag, Select, message } from 'antd';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { normalOrders, consignmentOrders, mockExchanges } from '../../mock';
 
-const SalesOrderSelectModal = ({ open, onCancel, onConfirm }) => {
-  const [selectedRowKey, setSelectedRowKey] = useState(null);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+const SalesOrderSelectModal = ({ open, onCancel, onConfirm, multiple = false }) => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedOrders, setSelectedOrders] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [form] = Form.useForm();
 
@@ -39,8 +39,8 @@ const SalesOrderSelectModal = ({ open, onCancel, onConfirm }) => {
   useEffect(() => {
     if (open) {
         setDataSource(getNormalizedData());
-        setSelectedRowKey(null);
-        setSelectedOrder(null);
+        setSelectedRowKeys([]);
+        setSelectedOrders([]);
     }
   }, [open]);
 
@@ -76,12 +76,12 @@ const SalesOrderSelectModal = ({ open, onCancel, onConfirm }) => {
 
   return (
     <Modal forceRender
-      title="关联销售订单 (仅显示待发货/备货中的订单)"
+      title="关联销售订单"
       open={open}
       onCancel={onCancel}
       width={900}
-      onOk={() => onConfirm(selectedOrder)}
-      okButtonProps={{ disabled: !selectedOrder }}
+      onOk={() => onConfirm(multiple ? selectedOrders : (selectedOrders?.[0] || null))}
+      okButtonProps={{ disabled: selectedOrders.length === 0 }}
       centered
     >
       <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
@@ -113,17 +113,37 @@ const SalesOrderSelectModal = ({ open, onCancel, onConfirm }) => {
         size="small"
         scroll={{ y: 400 }}
         rowSelection={{
-          type: 'radio',
-          selectedRowKeys: selectedRowKey ? [selectedRowKey] : [],
+          type: multiple ? 'checkbox' : 'radio',
+          selectedRowKeys: selectedRowKeys,
           onChange: (keys, rows) => {
-            setSelectedRowKey(keys[0]);
-            setSelectedOrder(rows[0]);
+            if (multiple) {
+              setSelectedRowKeys(keys);
+              setSelectedOrders(rows);
+            } else {
+              setSelectedRowKeys(keys.slice(0, 1));
+              setSelectedOrders(rows.slice(0, 1));
+            }
           }
         }}
         onRow={(record) => ({
           onClick: () => {
-            setSelectedRowKey(record.id);
-            setSelectedOrder(record);
+            if (multiple) {
+              const isSelected = selectedRowKeys.includes(record.id);
+              let nextKeys = [];
+              let nextOrders = [];
+              if (isSelected) {
+                nextKeys = selectedRowKeys.filter(k => k !== record.id);
+                nextOrders = selectedOrders.filter(o => o.id !== record.id);
+              } else {
+                nextKeys = [...selectedRowKeys, record.id];
+                nextOrders = [...selectedOrders, record];
+              }
+              setSelectedRowKeys(nextKeys);
+              setSelectedOrders(nextOrders);
+            } else {
+              setSelectedRowKeys([record.id]);
+              setSelectedOrders([record]);
+            }
           }
         })}
         pagination={{ pageSize: 10, showSizeChanger: true }}

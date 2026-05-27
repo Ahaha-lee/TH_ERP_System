@@ -31,6 +31,9 @@ const SalesOutboundDetailDrawer = ({ open, onClose, orderId }) => {
     { title: '数量', dataIndex: 'quantity', align: 'right' },
     { title: '单价', dataIndex: 'price', align: 'right', render: (v) => `￥${(v || 0).toFixed(2)}` },
     { title: '金额', key: 'amount', align: 'right', render: (_, r) => `￥${((r.quantity || 0) * (r.price || 0)).toFixed(2)}` },
+    { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
+    { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || 'A-01-01' },
   ];
 
   const auditColumns = [
@@ -60,12 +63,11 @@ const SalesOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         </Descriptions.Item>
         <Descriptions.Item label="关联单号">{order.relOrderNo}</Descriptions.Item>
         <Descriptions.Item label="客户">{order.partnerName}</Descriptions.Item>
-        <Descriptions.Item label="仓库">{order.warehouseName}</Descriptions.Item>
         <Descriptions.Item label="出库日期">{order.outboundDate}</Descriptions.Item>
         <Descriptions.Item label="状态">
           <Tag color={order.status === '已出库' ? 'success' : 'processing'}>{order.status}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="备注" span={2}>{order.remark}</Descriptions.Item>
+        <Descriptions.Item label="备注" span={3}>{order.remark || '-'}</Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left">物料明细</Divider>

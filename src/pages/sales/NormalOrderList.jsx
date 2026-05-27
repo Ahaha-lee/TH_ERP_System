@@ -125,8 +125,15 @@ const NormalOrderList = () => {
             render: (val) => `¥${val ? val.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}`
         },
         { 
-            title: '实收金额', 
+            title: '已收金额', 
             dataIndex: 'paidAmount', 
+            width: 120, 
+            align: 'right',
+            render: (val) => `¥${val ? val.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}`
+        },
+        { 
+            title: '定金金额', 
+            dataIndex: 'deposit', 
             width: 120, 
             align: 'right',
             render: (val) => `¥${val ? val.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}`
@@ -137,6 +144,24 @@ const NormalOrderList = () => {
             dataIndex: 'includeInStockingPlan', 
             width: 110,
             render: (val) => val ? <Tag color="green">是</Tag> : <Tag color="default">否</Tag>
+        },
+        { 
+            title: '是否存在定制产品', 
+            dataIndex: 'hasCustomProduct', 
+            width: 130,
+            render: (val, rec) => {
+                const isCustom = val ?? rec.items?.some(i => i.isCustom) ?? false;
+                return isCustom ? <Tag color="error">是</Tag> : <Tag color="default">否</Tag>;
+            }
+        },
+        { 
+            title: '紧急程度', 
+            dataIndex: 'urgency', 
+            width: 120,
+            render: (val, record) => {
+                const value = val || (record.isUrgent ? '紧急' : '一般');
+                return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+            }
         },
         { title: '结算方式', dataIndex: 'settlementMethod', width: 100 },
         { 
@@ -293,7 +318,7 @@ const NormalOrderList = () => {
                         <Col span={6}>
                             <Form.Item name="status" label="订单状态">
                                 <Select placeholder="选择状态" allowClear>
-                                    {['草稿', '待审核', '已审核', '已排产', '生产中', '已完工', '发货中', '已完成', '已关闭'].map(s => (
+                                    {['草稿', '待审核', '已审核', '生产中', '已完工', '发货中', '已完成', '已关闭'].map(s => (
                                         <Select.Option key={s} value={s}>{s}</Select.Option>
                                     ))}
                                 </Select>
@@ -381,23 +406,22 @@ const NormalOrderList = () => {
                 onClose={() => setDetailDrawer({ open: false, record: null })}
             />
             
-            <AuditDetailDrawer 
+            <NormalOrderDetailDrawer 
                 open={auditDrawer.open} 
                 record={auditDrawer.record} 
                 onClose={() => setAuditDrawer({ open: false, record: null })}
-                onSuccess={(updatedRecord) => {
-                    mockData.upsert('normalOrders', updatedRecord);
-                }}
             />
 
-            <AuditModal 
+            <NormalOrderFormModal 
                 open={auditModal.open} 
                 record={auditModal.record} 
                 onCancel={() => setAuditModal({ open: false, record: null })}
                 onSuccess={(updatedRecord) => {
                     mockData.upsert('normalOrders', updatedRecord);
                     setAuditModal({ open: false, record: null });
+                    message.success('审批处理成功');
                 }}
+                mode="audit"
             />
             
             <ClaimFlowModal 

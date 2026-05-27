@@ -18,8 +18,7 @@ import {
 import { SearchOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import ApplyOrderSelectModal from './modals/ApplyOrderSelectModal';
-import { warehouses } from '../../mock';
-import { products } from '../../mock';
+import { warehouses, products, batches } from '../../mock';
 
 const { TextArea } = Input;
 
@@ -57,6 +56,7 @@ const OtherOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
       ...item,
       outboundQty: item.applyQty,
       warehouseName: '',
+      batchNo: item.batchNo || 'B20250425PD001',
       location: '',
       remark: ''
     }));
@@ -64,7 +64,7 @@ const OtherOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
   };
 
   const addItemRow = () => {
-    setItems([...items, { productCode: '', productName: '', spec: '', unit: '', applyQty: 0, outboundQty: 0, warehouseName: '', location: '', remark: '' }]);
+    setItems([...items, { productCode: '', productName: '', spec: '', unit: '', applyQty: 0, outboundQty: 0, warehouseName: '', batchNo: 'B20250425PD001', location: '', remark: '' }]);
   };
 
   const removeItemRow = (index) => {
@@ -156,6 +156,25 @@ const OtherOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
           placeholder="请选择"
         >
           {warehouses.map(w => <Select.Option key={w.name} value={w.name}>{w.name}</Select.Option>)}
+        </Select>
+      )
+    },
+    { 
+      title: '批次号', 
+      dataIndex: 'batchNo', 
+      width: 170,
+      render: (val, record, i) => (
+        <Select 
+          value={val} 
+          onChange={(v) => updateItem(i, 'batchNo', v)} 
+          placeholder="请选择"
+          style={{ width: '100%' }}
+          allowClear
+          showSearch
+        >
+          {batches.map(b => (
+            <Select.Option key={b.id || b.batchNo} value={b.batchNo}>{b.batchNo}</Select.Option>
+          ))}
         </Select>
       )
     },

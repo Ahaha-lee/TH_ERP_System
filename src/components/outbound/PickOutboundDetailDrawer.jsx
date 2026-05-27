@@ -29,6 +29,9 @@ const PickOutboundDetailDrawer = ({ open, onClose, orderId }) => {
     { title: '物料编码', dataIndex: 'productCode' },
     { title: '物料名称', dataIndex: 'productName' },
     { title: '数量', dataIndex: 'quantity', align: 'right' },
+    { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
+    { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || 'A-01-01' },
   ];
 
   const auditColumns = [
@@ -58,12 +61,11 @@ const PickOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         </Descriptions.Item>
         <Descriptions.Item label="关联工单">{order.relOrderNo}</Descriptions.Item>
         <Descriptions.Item label="领用部门">{order.partnerName}</Descriptions.Item>
-        <Descriptions.Item label="仓库">{order.warehouseName}</Descriptions.Item>
         <Descriptions.Item label="出库日期">{order.outboundDate}</Descriptions.Item>
         <Descriptions.Item label="状态">
           <Tag color={order.status === '待审批' ? 'orange' : 'success'}>{order.status}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="备注" span={2}>{order.remark}</Descriptions.Item>
+        <Descriptions.Item label="备注" span={3}>{order.remark || '-'}</Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left">物料明细</Divider>

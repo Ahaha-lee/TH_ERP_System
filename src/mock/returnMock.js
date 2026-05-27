@@ -41,27 +41,6 @@ export const mockReturns = [
     remark: '待收货审批拒绝测试'
   },
   {
-    id: 'ret-004',
-    returnNo: 'RET-20250428-004',
-    sourceOrderNo: 'SOD-20250428-0004',
-    customerName: '北京天汇',
-    status: '待财务审批',
-    returnAmount: 3200,
-    items: [],
-    remark: '待财务审批测试'
-  },
-  {
-    id: 'ret-005',
-    returnNo: 'RET-20250428-005',
-    sourceOrderNo: 'SOD-20250428-0005',
-    customerName: '上海新世界',
-    status: '待财务审批',
-    auditResult: '审批拒绝',
-    returnAmount: 4100,
-    items: [],
-    remark: '待财务审批审批拒绝测试'
-  },
-  {
     id: 'ret-006',
     returnNo: 'RET-20250428-006',
     sourceOrderNo: 'SOD-20250428-0006',

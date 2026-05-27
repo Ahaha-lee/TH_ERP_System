@@ -55,7 +55,7 @@ const ConsignmentOrderList = () => {
     const [auditModal, setAuditModal] = useState({ open: false, record: null });
     const [materialModal, setMaterialModal] = useState({ open: false, record: null });
     const [productionModal, setProductionModal] = useState({ open: false, record: null });
-    const [deliveryProgressModal, setDeliveryProgressModal] = useState({ open: false, orderId: null });
+    const [deliveryProgressModal, setDeliveryProgressModal] = useState({ open: false, record: null });
     const [deliveryNoticeModal, setDeliveryNoticeModal] = useState({ open: false, record: null });
     const [claimFlowModal, setClaimFlowModal] = useState({ open: false, record: null });
 
@@ -88,6 +88,15 @@ const ConsignmentOrderList = () => {
             title: '受托加工订单号', 
             dataIndex: 'orderNo', 
             render: (text, record) => <Link onClick={() => setDetailDrawer({ open: true, record })}>{text}</Link> 
+        },
+        { 
+            title: '紧急程度', 
+            dataIndex: 'urgency', 
+            width: 120,
+            render: (val, record) => {
+                const value = val || (record.isUrgent ? '紧急' : '一般');
+                return <Tag color={value === '紧急' ? 'red' : 'default'}>{value}</Tag>;
+            }
         },
         { title: '来源报价单号', dataIndex: 'quotationNo', render: (t) => t || '-' },
         { title: '客户名称', dataIndex: 'customerName' },
@@ -225,7 +234,7 @@ const ConsignmentOrderList = () => {
                             <>
                                 <Button type="link" size="small" onClick={() => setMaterialModal({ open: true, record })}>查看来料进度</Button>
                                 <Button type="link" size="small" onClick={() => setProductionModal({ open: true, record })}>查看生产进度</Button>
-                                <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, orderId: record.id })}>查看发货进度</Button>
+                                <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, record })}>查看发货进度</Button>
                                 <Button type="link" size="small" onClick={() => setDeliveryNoticeModal({ open: true, record })}>发起发货通知</Button>
                             </>
                         )}
@@ -233,7 +242,7 @@ const ConsignmentOrderList = () => {
                             <>
                                 <Button type="link" size="small" onClick={() => setMaterialModal({ open: true, record })}>查看来料进度</Button>
                                 <Button type="link" size="small" onClick={() => setProductionModal({ open: true, record })}>查看生产进度</Button>
-                                <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, orderId: record.id })}>查看发货进度</Button>
+                                <Button type="link" size="small" onClick={() => setDeliveryProgressModal({ open: true, record })}>查看发货进度</Button>
                                 <Button type="link" size="small" onClick={() => setClaimFlowModal({ open: true, record })}>认领流水</Button>
                             </>
                         )}
@@ -318,8 +327,8 @@ const ConsignmentOrderList = () => {
 
             <DeliveryProgressModal
                 open={deliveryProgressModal.open}
-                orderId={deliveryProgressModal.orderId}
-                onCancel={() => setDeliveryProgressModal({ open: false, orderId: null })}
+                record={deliveryProgressModal.record}
+                onCancel={() => setDeliveryProgressModal({ open: false, record: null })}
             />
 
             <DeliveryNoticeFormModal

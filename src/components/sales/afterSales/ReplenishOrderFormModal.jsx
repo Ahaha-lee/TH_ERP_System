@@ -14,7 +14,8 @@ import {
     Space, 
     Typography, 
     Divider, 
-    message
+    message,
+    Switch
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -34,9 +35,10 @@ const ReplenishOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
     useEffect(() => {
         if (open) {
             if (record) {
-                form.setFieldsValue({ ...record, orderDate: dayjs(record.orderDate) });
+                form.setFieldsValue({ ...record, urgency: record.urgency || (record.isUrgent ? '紧急' : '一般'), orderDate: dayjs(record.orderDate) });
                 setItems(record.items || []);
-            } else { form.setFieldsValue({ orderNo: `ORDER-预览`, orderDate: dayjs(), salesperson: '管理员' });
+            } else { 
+                form.setFieldsValue({ orderNo: `ORDER-预览`, orderDate: dayjs(), salesperson: '管理员', urgency: '一般' });
                 setItems([]);
             }
         }
@@ -136,7 +138,7 @@ const ReplenishOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                 <Row gutter={24}>
                     <Col span={6}><Form.Item name="replenishNo" label="补货单号"><Input readOnly disabled /></Form.Item></Col>
                     <Col span={6}>
-                        <Form.Item name="orderNo" label="原销售订单号" rules={[{ required: true }]}>
+                        <Form.Item name="orderNo" label="来源销售订单" rules={[{ required: true }]}>
                             <Space.Compact style={{ width: '100%' }}>
                                 <Input readOnly placeholder="选择关联订单" />
                                 <Button type="primary" icon={<SearchOutlined />} onClick={() => setOrderSelectOpen(true)} />
@@ -148,6 +150,14 @@ const ReplenishOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                     <Col span={6}>
                         <Form.Item name="salesperson" label="业务员" rules={[{ required: true }]}>
                             <Select options={employees.map(e => ({ label: e.name, value: e.name }))} />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item name="urgency" label="紧急程度" rules={[{ required: true, message: '请选择紧急程度' }]}>
+                            <Select placeholder="选择紧急程度">
+                                <Select.Option value="紧急">紧急</Select.Option>
+                                <Select.Option value="一般">一般</Select.Option>
+                            </Select>
                         </Form.Item>
                     </Col>
                 </Row>

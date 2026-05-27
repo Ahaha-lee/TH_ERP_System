@@ -26,9 +26,16 @@ const OtherOutboundDetailDrawer = ({ open, onClose, orderId }) => {
 
   const columns = [
     { title: '序号', render: (_, __, i) => i + 1, width: 60 },
-    { title: '物料编码', dataIndex: 'productCode' },
-    { title: '物料名称', dataIndex: 'productName' },
-    { title: '数量', dataIndex: 'quantity', align: 'right' },
+    { title: '物料编码', dataIndex: 'productCode', width: 120 },
+    { title: '物料名称', dataIndex: 'productName', width: 155 },
+    { title: '规格', dataIndex: 'spec', width: 120, render: (v) => v || '-' },
+    { title: '单位', dataIndex: 'unit', width: 80, render: (v) => v || '-' },
+    { title: '申请数量', dataIndex: 'applyQty', align: 'right', width: 100, render: (v, r) => v !== undefined && v !== null ? v : (r.quantity || '-') },
+    { title: '本次出库数量', dataIndex: 'outboundQty', align: 'right', width: 120, render: (v, r) => v !== undefined && v !== null ? v : (r.quantity || '-') },
+    { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
+    { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || '-' },
+    { title: '备注', dataIndex: 'remark', width: 150, render: (v) => v || '-' },
   ];
 
   const auditColumns = [
@@ -54,16 +61,18 @@ const OtherOutboundDetailDrawer = ({ open, onClose, orderId }) => {
       <Descriptions title="基本信息" bordered column={3}>
         <Descriptions.Item label="出库单号">{order.orderNo}</Descriptions.Item>
         <Descriptions.Item label="出库类型">
-          <Tag color="default">{order.type}</Tag>
+          <Tag color="cyan">{order.type}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="关联单号">{order.relOrderNo}</Descriptions.Item>
-        <Descriptions.Item label="对象">{order.partnerName}</Descriptions.Item>
-        <Descriptions.Item label="仓库">{order.warehouseName}</Descriptions.Item>
-        <Descriptions.Item label="出库日期">{order.outboundDate}</Descriptions.Item>
+        <Descriptions.Item label="其他出库类型">{order.usageType || order.category || '领款'}</Descriptions.Item>
+        <Descriptions.Item label="关联申请单">{order.relApplyNo || order.relOrderNo || '-'}</Descriptions.Item>
+        <Descriptions.Item label="申请人">{order.partnerName || order.applicant || '-'}</Descriptions.Item>
+        <Descriptions.Item label="申请部门">{order.deptName || order.department || '-'}</Descriptions.Item>
+        <Descriptions.Item label="创建日期/出库日期">{order.createDate || order.outboundDate || order.date || '-'}</Descriptions.Item>
+        <Descriptions.Item label="仓管员">{order.handler || order.operator || '管理员'}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <Tag color="processing">{order.status}</Tag>
+          <Tag color={order.status === '已审核' || order.status === '已审批' ? 'success' : order.status === '待审核' || order.status === '待审批' ? 'orange' : 'default'}>{order.status}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="备注" span={2}>{order.remark}</Descriptions.Item>
+        <Descriptions.Item label="备注" span={3}>{order.remark || '-'}</Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left">物料明细</Divider>

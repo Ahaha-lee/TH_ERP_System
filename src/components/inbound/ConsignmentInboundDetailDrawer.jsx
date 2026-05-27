@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Drawer, Descriptions, Table, Tag, Typography, Divider, Tabs, Empty } from 'antd';
+import { Drawer, Descriptions, Table, Tag, Typography, Divider, Tabs, Empty, Modal } from 'antd';
 import { useMockData, mockAuditRecords } from '../../mock/data';
 
 const { Text } = Typography;
@@ -18,9 +18,13 @@ const ConsignmentInboundDetailDrawer = ({ open, onClose, orderNo }) => {
     { title: '物料编码', dataIndex: 'productCode', width: 120 },
     { title: '物料名称', dataIndex: 'productName', width: 150 },
     { title: '规格', dataIndex: 'spec', width: 120 },
+    { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
     { title: '单位', dataIndex: 'unit', width: 60 },
-    { title: '受托来料数量', dataIndex: 'quantity', width: 120, align: 'right' },
-    { title: '货位', dataIndex: 'bin', width: 100 },
+    { title: '订单数量', dataIndex: 'orderQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.quantity + (r.receivedQty || 0)) },
+    { title: '已入库数量', dataIndex: 'receivedQty', width: 100, align: 'right', render: (v) => v !== undefined && v !== null ? v : 0 },
+    { title: '待入库数量', dataIndex: 'remainQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : ((r.orderQty || r.quantity) - (r.receivedQty || 0)) },
+    { title: '本次入库数量', dataIndex: 'quantity', width: 120, align: 'right' },
+    { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || '-' },
   ];
 
   const auditColumns = [
@@ -51,7 +55,55 @@ const ConsignmentInboundDetailDrawer = ({ open, onClose, orderNo }) => {
         <Descriptions.Item label="存放仓库">{order?.warehouseName}</Descriptions.Item>
         <Descriptions.Item label="入库日期">{order?.inboundDate}</Descriptions.Item>
         <Descriptions.Item label="状态"><Tag color="cyan">{order?.status}</Tag></Descriptions.Item>
-        <Descriptions.Item label="备注" span={2}>{order?.remark || '-'}</Descriptions.Item>
+        <Descriptions.Item label="批次号">{order?.batchNo || 'B20250425PD001'}</Descriptions.Item>
+        <Descriptions.Item label="备注">{order?.remark || '-'}</Descriptions.Item>
+        <Descriptions.Item label="凭证/图片" span={3}>
+          {order?.image || order?.images?.[0] ? (
+            <img 
+              src={order?.image || order?.images?.[0]} 
+              alt="凭证" 
+              style={{ maxWidth: '120px', maxHeight: '120px', cursor: 'pointer', border: '1px solid #d9d9d9', borderRadius: '4px' }} 
+              onClick={() => {
+                Modal.info({
+                  title: '图片预览',
+                  maskClosable: true,
+                  width: 'auto',
+                  centered: true,
+                  icon: null,
+                  okText: '关闭',
+                  content: (
+                    <div style={{ textAlign: 'center', marginTop: 12 }}>
+                      <img src={order?.image || order?.images?.[0]} alt="凭证" style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain' }} referrerPolicy="no-referrer" />
+                    </div>
+                  )
+                });
+              }}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <img 
+              src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400&q=80" 
+              alt="凭证" 
+              style={{ maxWidth: '120px', maxHeight: '120px', cursor: 'pointer', border: '1px solid #d9d9d9', borderRadius: '4px' }}
+              onClick={() => {
+                Modal.info({
+                  title: '图片预览',
+                  maskClosable: true,
+                  width: 'auto',
+                  centered: true,
+                  icon: null,
+                  okText: '关闭',
+                  content: (
+                    <div style={{ textAlign: 'center', marginTop: 12 }}>
+                      <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400&q=80" alt="凭证" style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain' }} referrerPolicy="no-referrer" />
+                    </div>
+                  )
+                });
+              }}
+              referrerPolicy="no-referrer"
+            />
+          )}
+        </Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left">来料明细</Divider>
@@ -65,9 +117,9 @@ const ConsignmentInboundDetailDrawer = ({ open, onClose, orderNo }) => {
           let totalQty = pageData.reduce((s, it) => s + (it.quantity || 0), 0);
           return (
             <Table.Summary.Row key="total">
-              <Table.Summary.Cell index={0} colSpan={5}>合计</Table.Summary.Cell>
+              <Table.Summary.Cell index={0} colSpan={9}>合计</Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right"><Text strong>{totalQty}</Text></Table.Summary.Cell>
-              <Table.Summary.Cell index={2}></Table.Summary.Cell>
+              <Table.Summary.Cell index={2} colSpan={1}></Table.Summary.Cell>
             </Table.Summary.Row>
           );
         }}

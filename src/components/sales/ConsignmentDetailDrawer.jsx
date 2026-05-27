@@ -56,7 +56,6 @@ const ConsignmentDetailDrawer = ({ open, onClose, record, order }) => {
         <Descriptions.Item label="订单日期">{activeRecord.orderDate}</Descriptions.Item>
         <Descriptions.Item label="业务员">{activeRecord.salesperson || activeRecord.salesman}</Descriptions.Item>
         <Descriptions.Item label="来料状态"><Tag>{activeRecord.materialStatus || activeRecord.receiptStatus || '-'}</Tag></Descriptions.Item>
-        <Divider />
         <Descriptions.Item label="加工进度" span={2}>
            <Progress percent={activeRecord.productionProgress || activeRecord.processingProgress} size="small" />
         </Descriptions.Item>
@@ -84,12 +83,54 @@ const ConsignmentDetailDrawer = ({ open, onClose, record, order }) => {
         rowKey="_key"
         size="small" 
         pagination={false}
+        scroll={{ x: 'max-content' }}
         columns={[
-          { title: '加工工序/产品', dataIndex: 'processName', render: (v, r) => v || r.productName },
-          { title: '规格', dataIndex: 'processSpec', render: (v, r) => v || r.spec },
-          { title: '数量', dataIndex: 'quantity' },
-          { title: '折后最终价', dataIndex: 'unitPrice', render: v => `¥${(v || 0).toFixed(2)}` },
-          { title: '金额', dataIndex: 'amount', render: v => `¥${(v || 0).toFixed(2)}` }
+          { title: '产品编码', dataIndex: 'productCode', render: (v, r) => v || r.processCode || 'PROD001' },
+          { title: '产品名称', dataIndex: 'productName', render: (v, r) => r.productName || r.processName || '-' },
+          { title: '加工备注', dataIndex: 'remark', render: (v, r) => r.remark || r.processSpec || '-' },
+          { title: '加工单价', dataIndex: 'unitPrice', render: v => `¥${(v || 0).toFixed(2)}` },
+          { 
+            title: '优惠折扣率', 
+            render: (_, r) => {
+              const rate = r.discountRate !== undefined ? r.discountRate : (activeRecord.discountRate || 0);
+              return `${(rate * 100).toFixed(0)}%`;
+            }
+          },
+          { 
+            title: '折后加工单价', 
+            render: (_, r) => {
+              const rate = r.discountRate !== undefined ? r.discountRate : (activeRecord.discountRate || 0);
+              const price = (r.unitPrice || 0) * (1 - rate);
+              return `¥${price.toFixed(2)}`;
+            }
+          },
+          { title: '加工数量', dataIndex: 'quantity' },
+          { 
+            title: '标准总金额', 
+            render: (_, r) => {
+              const amount = (r.unitPrice || 0) * (r.quantity || 0);
+              return `¥${amount.toFixed(2)}`;
+            }
+          },
+          { 
+            title: '折后总金额（含税）', 
+            render: (_, r) => {
+              const rate = r.discountRate !== undefined ? r.discountRate : (activeRecord.discountRate || 0);
+              const price = (r.unitPrice || 0) * (1 - rate);
+              const amt = price * (r.quantity || 0);
+              return `¥${amt.toFixed(2)}`;
+            }
+          },
+          { 
+            title: '折后总金额（不含税）', 
+            render: (_, r) => {
+              const rate = r.discountRate !== undefined ? r.discountRate : (activeRecord.discountRate || 0);
+              const price = (r.unitPrice || 0) * (1 - rate);
+              const amt = price * (r.quantity || 0);
+              const amtNoTax = amt / 1.13;
+              return `¥${amtNoTax.toFixed(2)}`;
+            }
+          }
         ]}
       />
 

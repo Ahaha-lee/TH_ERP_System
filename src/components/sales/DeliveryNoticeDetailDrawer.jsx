@@ -11,24 +11,73 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
 
     const basicItems = [
         { label: '发货通知单号', children: notice.noticeNo },
-        { label: '销售订单号', children: <Typography.Link onClick={() => window.open(`/sales-orders/normal?orderNo=${notice.orderNo}`)}>{notice.orderNo}</Typography.Link> },
-        { label: '客户名称', children: notice.customerName },
-        { label: '结算方式', children: <Tag color="blue">{notice.settlementMethod}</Tag> },
-        { label: '期望发货日期', children: notice.expectDeliveryDate || '-' },
-        { label: '发货方式', children: notice.deliveryMethod || '物流' },
         { label: '业务员', children: notice.salesperson },
-        { label: '状态', children: <Tag color={notice.status === '已审批' ? 'green' : 'blue'}>{notice.status}</Tag> },
+        { 
+            label: '状态', 
+            children: (
+                <Tag color={
+                    notice.status === '已完成(备货取消)' ? 'magenta' :
+                    notice.status === '已出库' ? 'purple' :
+                    notice.status === '已审批' ? 'green' : 'blue'
+                }>
+                    {notice.status}
+                </Tag>
+            )
+        },
         { label: '创建时间', children: notice.createdAt },
         { label: '总金额', children: <Text type="danger" strong>{formatCurrency(notice.totalAmount)}</Text> },
-        { label: '备注', children: notice.remark || '-', span: 2 },
+        { label: '备注', children: notice.remark || '-' },
     ];
 
     const productColumns = [
+        { title: '销售订单号', dataIndex: 'sourceOrderNo', render: (v, rec) => v || notice.orderNo || '-' },
+        { 
+            title: '客户名称（编码/名称）', 
+            dataIndex: 'customerName', 
+            render: (v, rec) => {
+                const name = v || notice.customerName || '-';
+                const code = rec.customerCode || notice.customerCode || 'CUST-001';
+                return `${code}/${name}`;
+            }
+        },
         { title: '产品编码', dataIndex: 'productCode' },
         { title: '产品名称', dataIndex: 'productName' },
         { title: '规格', dataIndex: 'spec' },
+        { title: '库存数量', dataIndex: 'stock', render: (v) => <Text type="secondary">{v !== undefined ? v : 120}</Text> },
+        { title: '可用数量', dataIndex: 'availableQty', render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.85)}</span> },
+        { title: '占用数量', dataIndex: 'allocatedQty', render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.15)}</span> },
         { title: '订单量', dataIndex: 'orderQty' },
-        { title: '已发量', dataIndex: 'shippedQty' },
+        { 
+            title: '已发量', 
+            dataIndex: 'shippedQty',
+            render: (v, rec) => {
+                if (notice.status === '已完成(备货取消)' && rec.shippedQtyChange !== undefined) {
+                    return (
+                        <div className="flex items-center gap-1">
+                            <Text>{v}</Text>
+                            <Tag color="error" className="font-mono text-xs border-0 px-1 py-0 m-0 leading-none">-{rec.shippedQtyChange}</Tag>
+                        </div>
+                    );
+                }
+                return v;
+            }
+        },
+        { 
+            title: '未发货数量', 
+            dataIndex: 'pendingQty',
+            render: (v, rec) => {
+                const pendingValue = v !== undefined ? v : (rec.orderQty - (rec.shippedQty || 0));
+                if (notice.status === '已完成(备货取消)' && rec.pendingQtyChange !== undefined) {
+                    return (
+                        <div className="flex items-center gap-1">
+                            <Text>{pendingValue}</Text>
+                            <Tag color="success" className="font-mono text-xs border-0 px-1 py-0 m-0 leading-none">+{rec.pendingQtyChange}</Tag>
+                        </div>
+                    );
+                }
+                return pendingValue;
+            }
+        },
         { title: '本次发货量', dataIndex: 'currentQty', render: (v) => <Text strong>{v}</Text> },
         { title: '单位', dataIndex: 'unit', render: v => v || '套' },
         { title: '行备注', dataIndex: 'remark' },
@@ -73,7 +122,7 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
                     label: '基本信息',
                     children: (
                         <>
-                            <Descriptions bordered size="small" items={basicItems} column={2} className="mb-6" />
+                            <Descriptions bordered size="small" items={basicItems} column={3} className="mb-6" />
                             <Title level={5}>发货产品明细</Title>
                             <Table 
                                 dataSource={notice.items || []} 

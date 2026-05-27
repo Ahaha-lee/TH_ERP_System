@@ -11,14 +11,11 @@ import {
     Divider, 
     Typography, 
     Row, 
-    Col,
-    Select
+    Col
 } from 'antd';
-import { warehouses } from '../../mock';
 
 const { TextArea } = Input;
 const { Text } = Typography;
-const { Option } = Select;
 
 const WarehouseAuditModal = ({ open, record, onCancel, onSuccess }) => {
     const [form] = Form.useForm();
@@ -29,12 +26,6 @@ const WarehouseAuditModal = ({ open, record, onCancel, onSuccess }) => {
             setItems(record.items || []);
         }
     }, [open, record]);
-
-    const handleItemChange = (index, field, value) => {
-        const newItems = [...items];
-        newItems[index] = { ...newItems[index], [field]: value };
-        setItems(newItems);
-    };
 
     const handleOk = () => {
         if (!record) return;
@@ -55,68 +46,24 @@ const WarehouseAuditModal = ({ open, record, onCancel, onSuccess }) => {
     };
 
     const columns = [
+        { title: '销售订单号', dataIndex: 'sourceOrderNo', width: 140, render: (v, rec) => v || record?.orderNo || '-' },
+        { 
+            title: '客户名称（编码/名称）',   
+            dataIndex: 'customerName', 
+            width: 180,
+            render: (v, rec) => {
+                const name = v || record?.customerName || '-';
+                const code = rec.customerCode || record?.customerCode || 'CUST-001';
+                return `${code}/${name}`;
+            }
+        },
         { title: '产品编码', dataIndex: 'productCode', width: 110 },
         { title: '产品名称', dataIndex: 'productName', width: 140 },
         { title: '规格', dataIndex: 'spec', width: 110 },
-        { title: '当前库存', dataIndex: 'stock', width: 90, align: 'right', render: (v) => <Text type="secondary">{v || Math.floor(Math.random() * 200)}</Text> },
+        { title: '库存数量', dataIndex: 'stock', width: 90, align: 'right', render: (v) => <Text type="secondary">{v !== undefined ? v : 120}</Text> },
+        { title: '可用数量', dataIndex: 'availableQty', width: 90, align: 'right', render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.85)}</span> },
+        { title: '占用数量', dataIndex: 'allocatedQty', width: 90, align: 'right', render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.15)}</span> },
         { title: '本次发货数量', dataIndex: 'currentQty', width: 110, align: 'right', render: (v) => <Text strong style={{ color: '#1677ff' }}>{v}</Text> },
-        { 
-            title: '出库仓库', 
-            dataIndex: 'outWarehouse', 
-            width: 150,
-            render: (val, _, index) => (
-                <Select 
-                    placeholder="选择仓库" 
-                    style={{ width: '100%' }} 
-                    value={val}
-                    size="small"
-                    onChange={(v) => handleItemChange(index, 'outWarehouse', v)}
-                >
-                    {warehouses.map(w => <Option key={w.id} value={w.name}>{w.name}</Option>)}
-                </Select>
-            )
-        },
-        { 
-            title: '批次号', 
-            dataIndex: 'batchNo', 
-            width: 140,
-            render: (val, _, index) => (
-                <Select 
-                    placeholder="选择批次" 
-                    value={val}
-                    size="small"
-                    style={{ width: '100%' }}
-                    onChange={(v) => handleItemChange(index, 'batchNo', v)}
-                >
-                    <Option value="20240501A">20240501A</Option>
-                    <Option value="20240501B">20240501B</Option>
-                    <Option value="20240502A">20240502A</Option>
-                    <Option value="20250101X">20250101X</Option>
-                </Select>
-            )
-        },
-        { 
-            title: '货位', 
-            dataIndex: 'location', 
-            width: 120,
-            render: (val, _, index) => (
-                <Select 
-                    placeholder="选择货位" 
-                    value={val}
-                    size="small"
-                    allowClear
-                    style={{ width: '100%' }}
-                    onChange={(v) => handleItemChange(index, 'location', v)}
-                >
-                    <Option value="A-01-01">A-01-01</Option>
-                    <Option value="A-01-02">A-01-02</Option>
-                    <Option value="B-02-01">B-02-01</Option>
-                    <Option value="B-02-02">B-02-02</Option>
-                    <Option value="C-03-01">C-03-01</Option>
-                    <Option value="备货区-01">备货区-01</Option>
-                </Select>
-            )
-        },
     ];
 
     return (
@@ -128,7 +75,7 @@ const WarehouseAuditModal = ({ open, record, onCancel, onSuccess }) => {
                 onCancel();
             }}
             onOk={handleOk}
-            width={1100}
+            width={1150}
             centered
             okText="确认审批"
             cancelText="取消"
@@ -136,10 +83,11 @@ const WarehouseAuditModal = ({ open, record, onCancel, onSuccess }) => {
             <Form form={form} layout="vertical" initialValues={{ action: 'pass' }}>
                 {record ? (
                     <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: 8 }}>
-                        <Descriptions bordered size="small" column={2} styles={{ label: { width: 120 } }}>
-                            <Descriptions.Item label="客户名称">{record.customerName}</Descriptions.Item>
-                            <Descriptions.Item label="销售订单号">{record.orderNo}</Descriptions.Item>
-                            <Descriptions.Item label="客户备注" span={2}>{record.remark || '-'}</Descriptions.Item>
+                        <Descriptions bordered size="small" column={3} styles={{ label: { width: 120 } }}>
+                            <Descriptions.Item label="发货单号">{record.noticeNo || '-'}</Descriptions.Item>
+                            <Descriptions.Item label="业务员">{record.salesperson || '-'}</Descriptions.Item>
+                            <Descriptions.Item label="创建日期">{record.createdAt || '-'}</Descriptions.Item>
+                            <Descriptions.Item label="备注" span={3}>{record.remark || '-'}</Descriptions.Item>
                         </Descriptions>
 
                         <Divider titlePlacement="left" style={{ margin: '16px 0' }}>发货产品明细</Divider>

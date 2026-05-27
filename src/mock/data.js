@@ -11,29 +11,90 @@ const initialState = {
     { id: 'emp3', name: '李仓库员', status: '在职', role: 'warehouse' },
     { id: 'emp4', name: '财务王', status: '在职', role: 'finance' }
   ],
+  stockingPlans: [
+    {
+      id: 'sp1',
+      planNo: 'SP20250519001',
+      relOrderNo: 'DN20250429001',
+      outboundOrderNo: 'OUT20250520001',
+      outboundType: '销售出库',
+      productInfo: '皮沙发, 实木餐桌',
+      status: '未确认',
+      operator: '李仓库员',
+      operationTime: '2025-05-19 10:00:00'
+    },
+    {
+      id: 'sp2',
+      planNo: 'SP20250519002',
+      relOrderNo: 'REQ20250501001',
+      outboundOrderNo: 'OUT20250520002',
+      outboundType: '领料出库',
+      productInfo: '不锈钢铰链, 抽屉滑轨',
+      status: '确认出库',
+      operator: '李仓库员',
+      operationTime: '2025-05-19 11:00:00'
+    },
+    {
+      id: 'sp3',
+      planNo: 'SP20250519003',
+      relOrderNo: 'DN20250501001',
+      outboundOrderNo: '',
+      outboundType: '销售出库',
+      productInfo: '极简书架',
+      status: '待关闭审核',
+      operator: '管理员',
+      operationTime: '2025-05-19 14:00:00',
+      prevStatus: '未确认',
+      closeReason: '客户申请取消订单',
+      closeRemark: '客户由于交货周期调整，紧急致电要求取消该批极简书架的发货备货计划，后续可能会重新下单。',
+      closePriority: '紧急',
+      closeApplicant: '李仓库员',
+      closeApplyTime: '2026-05-25 09:12:00',
+      closeApprovalLog: [
+        {
+          action: '提交关闭申请',
+          operator: '李仓库员',
+          time: '2026-05-25 09:12:00',
+          remark: '客户由于交货周期调整，紧急致电要求取消该批极简书架的发货备货计划，后续可能会重新下单。',
+          reason: '客户申请取消订单'
+        }
+      ]
+    },
+    {
+      id: 'sp4',
+      planNo: 'SP20250519004',
+      relOrderNo: 'REQ20250510002',
+      outboundOrderNo: '',
+      outboundType: '领料出库',
+      productInfo: '红橡木板材, 自攻螺丝',
+      status: '未确认',
+      operator: '李仓库员',
+      operationTime: '2025-05-19 15:30:00'
+    }
+  ],
   customers: [
-    { id: 'cus1', code: 'CUS001', name: '美家家居', type: '经销商', contact: '张总', phone: '13811112222', status: '启用', salesperson: '张经理', settlementMethod: '月结', approvalStatus: '审批通过', feedbacks: [{ id: 1, time: '2025-04-15 10:00:00', content: '客户对五月份促销政策表示满意' }] },
-    { id: 'cus2', code: 'CUS002', name: '宜居美学', type: '零售', contact: '李女士', phone: '13933334444', status: '启用', salesperson: '张经理', settlementMethod: '现金', approvalStatus: '审批通过' },
-    { id: 'cus3', code: 'CUS003', name: '锦绣服饰旗舰店', type: '零售', contact: '王经理', phone: '13755556666', status: '启用', salesperson: '管理员', settlementMethod: '现结', approvalStatus: '审批通过' },
-    { id: 'cus4', code: 'CUS004', name: '宏发商贸', type: '分销商', contact: '赵红', phone: '13677778888', status: '启用', salesperson: '张经理', settlementMethod: '预存', prepaidBalance: 15000, approvalStatus: '审批通过', feedbacks: [{ id: 2, time: '2025-04-20 11:00:00', content: '希望增加实木类产品的种类' }] },
-    { id: 'cus5', code: 'CUS005', name: '博雅装饰', type: '独立店', contact: '孙博', phone: '13599990000', status: '启用', salesperson: '李仓库员', settlementMethod: '月结', approvalStatus: '待审批', hasOverdue: true },
-    { id: 'cus6', code: 'CUS006', name: '瑞龙实业', type: '企业客户', contact: '周龙', phone: '13422223333', status: '启用', salesperson: '管理员', settlementMethod: '月结', approvalStatus: '审批通过' },
-    { id: 'cus7', code: 'CUS007', name: '理想中心', type: '经销商', contact: '沈想', phone: '18911112222', status: '启用', salesperson: '张经理', settlementMethod: '预存', prepaidBalance: 20000, approvalStatus: '审批通过' }
+    { id: 'cus1', code: 'CUS001', name: '美家家居', type: '经销商', contact: '张总', phone: '13811112222', status: '启用', level: 'A级', region: '华东', salesperson: '张经理', settlementMethod: '月结', approvalStatus: '审批通过', feedbacks: [{ id: 1, time: '2025-04-15 10:00:00', content: '客户对五月份促销政策表示满意' }] },
+    { id: 'cus2', code: 'CUS002', name: '宜居美学', type: '零售', contact: '李女士', phone: '13933334444', status: '启用', level: 'B级', region: '华南', salesperson: '张经理', settlementMethod: '现金', approvalStatus: '审批通过' },
+    { id: 'cus3', code: 'CUS003', name: '锦绣服饰旗舰店', type: '零售', contact: '王经理', phone: '13755556666', status: '启用', level: 'C级', region: '华东', salesperson: '管理员', settlementMethod: '现结', approvalStatus: '审批通过' },
+    { id: 'cus4', code: 'CUS004', name: '宏发商贸', type: '分销商', contact: '赵红', phone: '13677778888', status: '启用', level: 'C级', region: '西南', salesperson: '张经理', settlementMethod: '预存', prepaidBalance: 15000, approvalStatus: '审批通过', feedbacks: [{ id: 2, time: '2025-04-20 11:00:00', content: '希望增加实木类产品的种类' }] },
+    { id: 'cus5', code: 'CUS005', name: '博雅装饰', type: '独立店', contact: '孙博', phone: '13599990000', status: '启用', level: 'B级', region: '华北', salesperson: '李仓库员', settlementMethod: '月结', approvalStatus: '待审批', hasOverdue: true },
+    { id: 'cus6', code: 'CUS006', name: '瑞龙实业', type: '企业客户', contact: '周龙', phone: '13422223333', status: '启用', level: 'A级', region: '华南', salesperson: '管理员', settlementMethod: '月结', approvalStatus: '审批通过' },
+    { id: 'cus7', code: 'CUS007', name: '理想中心', type: '经销商', contact: '沈想', phone: '18911112222', status: '启用', level: 'S级', region: '全国', salesperson: '张经理', settlementMethod: '预存', prepaidBalance: 20000, approvalStatus: '审批通过' }
   ],
   quotations: [
-    { id: 'q1', quotationNo: 'BJ202504280001', customerId: 'cus1', customerName: '美家家居', quotationDate: '2025-04-28', salesperson: '张经理', totalAmount: 18000.00, status: '已审核', auditResult: '审核通过', title: '5月促销季备货报价', isDeposit: true, depositRate: 0.3, items: [
-      { id: 'qi1', productCode: 'PROD001', productName: '皮沙发', spec: '真皮/咖啡色', unit: '个', quantity: 4, price: 2500, amount: 10000, discountPrice: 9500 },
-      { id: 'qi2', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, discountPrice: 6000 },
-      { id: 'qi3', productCode: 'ACC001', productName: '不锈钢铰链', spec: '110度/自卸', unit: '对', quantity: 10, price: 12, amount: 120, discountPrice: 100 }
+    { id: 'q1', quotationNo: 'BJ202504280001', customerId: 'cus1', customerName: '美家家居', quotationDate: '2025-04-28', salesperson: '张经理', totalAmount: 18000.00, otherFees: 1350.00, status: '已审核', auditResult: '审核通过', title: '5月促销季备货报价', isDeposit: true, depositRate: 0.3, hasCustomProduct: true, expectedDeliveryDate: '2025-05-30', items: [
+      { id: 'qi1', productCode: 'PROD001', productName: '皮沙发', spec: '真皮/咖啡色', model: 'M-2026', category: '定制成品', unit: '个', quantity: 4, standardPrice: 3000, marketPrice: 3600, floorPrice: 2500, discountRate: 0.85, finalPrice: 2550, amount: 10200, isCustom: true, stockQty: 45, availableQty: 30, tempProductCode: 'TEMP-2025-001', substituteProductCode: 'MAT-098', substituteProductName: '人造PU皮', substituteSpec: '超纤耐磨/卡布奇诺灰', strategyCode: 'LEVEL_A_DISC' },
+      { id: 'qi2', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', model: 'M-2026', category: '成品', unit: '张', quantity: 2, standardPrice: 3500, marketPrice: 4200, floorPrice: 3000, discountRate: 0.90, finalPrice: 3150, amount: 6300, isCustom: false, stockQty: 12, availableQty: 10, strategyCode: 'REGION_SOUTH_DISC' },
+      { id: 'qi3', productCode: 'ACC001', productName: '不锈钢铰链', spec: '110度/自卸', model: 'M-2026', category: '配件', unit: '对', quantity: 10, standardPrice: 15, marketPrice: 18, floorPrice: 10, discountRate: 1.00, finalPrice: 15, amount: 150, isCustom: false, stockQty: 1000, availableQty: 800, strategyCode: 'SYSTEM_STD' }
     ]},
-    { id: 'q2', quotationNo: 'BJ202504270001', customerId: 'cus2', customerName: '宜居美学', quotationDate: '2025-04-27', salesperson: '管理员', totalAmount: 8500.00, status: '草稿', auditResult: null, title: '新款餐桌意向报价', isDeposit: false, items: [
-      { id: 'qi4', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, discountPrice: 6400 },
-      { id: 'qi5', productCode: 'ACC001', productName: '不锈钢铰链', spec: '110度/自卸', unit: '对', quantity: 6, price: 12, amount: 72, discountPrice: 72 }
+    { id: 'q2', quotationNo: 'BJ202504270001', customerId: 'cus2', customerName: '宜居美学', quotationDate: '2025-04-27', salesperson: '管理员', totalAmount: 8500.00, status: '草稿', auditResult: null, title: '新款餐桌意向报价', isDeposit: false, hasCustomProduct: false, expectedDeliveryDate: '2025-06-05', items: [
+      { id: 'qi4', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, discountPrice: 6400, isCustom: false, stockQty: 12, availableQty: 10, occupiedQty: 2 },
+      { id: 'qi5', productCode: 'ACC001', productName: '不锈钢铰链', spec: '110度/自卸', unit: '对', quantity: 6, price: 12, amount: 72, discountPrice: 72, isCustom: false, stockQty: 1000, availableQty: 800, occupiedQty: 200 }
     ]},
-    { id: 'q3', quotationNo: 'BJ202504290001', customerId: 'cus4', customerName: '宏发商贸', quotationDate: '2025-04-29', salesperson: '张经理', totalAmount: 50000.00, status: '待审核', auditResult: null, title: '大客户年度集采', isDeposit: true, depositRate: 0.5, items: [
-        { id: 'qi6', productCode: 'PROD003', productName: '极简书架', spec: '胡桃木', unit: '组', quantity: 20, price: 1800, amount: 36000, discountPrice: 34000 },
-        { id: 'qi7', productCode: 'MAT001', productName: '红橡木板材', spec: '2000*200*20', unit: 'm³', quantity: 2, price: 4500, amount: 9000, discountPrice: 8500 },
-        { id: 'qi8', productCode: 'ACC001', productName: '不锈钢铰链', spec: '110度/自卸', unit: '对', quantity: 400, price: 12, amount: 4800, discountPrice: 4500 }
+    { id: 'q3', quotationNo: 'BJ202504290001', customerId: 'cus4', customerName: '宏发商贸', quotationDate: '2025-04-29', salesperson: '张经理', totalAmount: 50000.00, status: '待审核', auditResult: null, title: '大客户年度集采', isDeposit: true, depositRate: 0.5, hasCustomProduct: true, expectedDeliveryDate: '2025-06-15', items: [
+        { id: 'qi6', productCode: 'PROD003', productName: '极简书架', spec: '胡桃木', unit: '组', quantity: 20, price: 1800, amount: 36000, discountPrice: 34000, isCustom: true, stockQty: 5, availableQty: 5, occupiedQty: 0 },
+        { id: 'qi7', productCode: 'MAT001', productName: '红橡木板材', spec: '2000*200*20', unit: 'm³', quantity: 2, price: 4500, amount: 9000, discountPrice: 8500, isCustom: false, stockQty: 25, availableQty: 20, occupiedQty: 5 },
+        { id: 'qi8', productCode: 'ACC001', productName: '不锈钢铰链', spec: '110度/自卸', unit: '对', quantity: 400, price: 12, amount: 4800, discountPrice: 4500, isCustom: false, stockQty: 1000, availableQty: 800, occupiedQty: 200 }
     ]}
   ],
   normalOrders: [
@@ -61,9 +122,11 @@ const initialState = {
         isCollectDeposit: true,
         deposit: 5000,
         depositRatio: 27.7,
+        isUrgent: true,
+        hasCustomProduct: false,
         items: [
-          { id: 'oi1', productCode: 'PROD001', productName: '皮沙发', spec: '真皮/咖啡色', unit: '个', quantity: 4, price: 2500, amount: 10000, shippedQuantity: 2, pendingQty: 2 },
-          { id: 'oi2', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, shippedQuantity: 1, pendingQty: 1 }
+          { id: 'oi1', productCode: 'PROD001', productName: '皮沙发', spec: '真皮/咖啡色', unit: '个', quantity: 4, price: 2500, amount: 10000, shippedQuantity: 2, pendingQty: 2, isCustom: false },
+          { id: 'oi2', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, shippedQuantity: 1, pendingQty: 1, isCustom: false }
         ]
     },
     {
@@ -90,8 +153,10 @@ const initialState = {
         isCollectDeposit: true,
         deposit: 12000,
         depositRatio: 100,
+        isUrgent: false,
+        hasCustomProduct: true,
         items: [
-          { id: 'oi3', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 3, price: 3200, amount: 9600, shippedQuantity: 0, pendingQty: 3 }
+          { id: 'oi3', productCode: 'PROD002', productName: '定做胡桃木书柜', spec: '1.6m圆形', unit: '张', quantity: 3, price: 3200, amount: 9600, shippedQuantity: 0, pendingQty: 3, isCustom: true }
         ]
     },
     {
@@ -117,9 +182,11 @@ const initialState = {
         customerType: '零售',
         deposit: 0,
         depositRatio: 0,
+        isUrgent: true,
+        hasCustomProduct: true,
         items: [
-            { id: 'oi4', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, shippedQuantity: 0, pendingQty: 2 },
-            { id: 'oi5', productCode: 'ACC001', productName: '餐椅', spec: '配套实木', unit: '把', quantity: 6, price: 350, amount: 2100, shippedQuantity: 0, pendingQty: 6 }
+            { id: 'oi4', productCode: 'PROD002', productName: '实木餐桌', spec: '1.6m圆形', unit: '张', quantity: 2, price: 3200, amount: 6400, shippedQuantity: 0, pendingQty: 2, isCustom: false },
+            { id: 'oi5', productCode: 'ACC001', productName: '餐椅', spec: '配套实木', unit: '把', quantity: 6, price: 350, amount: 2100, shippedQuantity: 0, pendingQty: 6, isCustom: true }
         ]
     },
     {
@@ -129,6 +196,8 @@ const initialState = {
         customerName: '美家家居',
         orderDate: '2025-05-01',
         totalAmount: 5000,
+        paidAmount: 0,
+        deposit: 0,
         status: '草稿',
         salesperson: '张经理',
         items: [{ id: 'oi6', productName: '测试产品', quantity: 1, price: 5000, amount: 5000 }]
@@ -140,21 +209,11 @@ const initialState = {
         customerName: '宜居美学',
         orderDate: '2025-05-01',
         totalAmount: 15000,
+        paidAmount: 0,
+        deposit: 3000,
         status: '待审核',
         salesperson: '管理员',
         items: [{ id: 'oi7', productName: '实木餐床', quantity: 1, price: 15000, amount: 15000 }]
-    },
-    {
-        id: 'ord6',
-        orderNo: 'SO20250501006',
-        customerId: 'cus3',
-        customerName: '锦绣服饰旗舰店',
-        orderDate: '2025-05-01',
-        totalAmount: 20000,
-        status: '已排产',
-        productionProgress: 0,
-        salesperson: '管理员',
-        items: [{ id: 'oi8', productName: '陈列架', quantity: 10, price: 2000, amount: 20000 }]
     },
     {
         id: 'ord7',
@@ -163,6 +222,8 @@ const initialState = {
         customerName: '瑞龙实业',
         orderDate: '2025-05-01',
         totalAmount: 30000,
+        paidAmount: 15000,
+        deposit: 15000,
         status: '生产中',
         productionProgress: 60,
         salesperson: '管理员',
@@ -175,6 +236,8 @@ const initialState = {
         customerName: '理想中心',
         orderDate: '2025-05-01',
         totalAmount: 10000,
+        paidAmount: 10000,
+        deposit: 2000,
         status: '完成',
         paymentStatus: '已结清',
         salesperson: '张经理',
@@ -187,6 +250,8 @@ const initialState = {
         customerName: '美家家居',
         orderDate: '2025-05-01',
         totalAmount: 45000,
+        paidAmount: 20000,
+        deposit: 15000,
         status: '已完成',
         paymentStatus: '部分结清',
         salesperson: '张经理',
@@ -199,6 +264,8 @@ const initialState = {
         customerName: '宏发商贸',
         orderDate: '2025-05-01',
         totalAmount: 2000,
+        paidAmount: 2000,
+        deposit: 500,
         status: '已关闭',
         paymentStatus: '已结清',
         salesperson: '张经理',
@@ -214,6 +281,7 @@ const initialState = {
       orderDate: '2025-04-29',
       expectDeliveryDate: '2025-05-20',
       status: '生产中',
+      isUrgent: true,
       totalAmount: 3500,
       processingProgress: 35,
       deliveryProgressText: '待发货',
@@ -243,6 +311,7 @@ const initialState = {
       orderDate: '2025-05-01',
       expectDeliveryDate: '2025-05-25',
       status: '草稿',
+      isUrgent: false,
       totalAmount: 2000,
       processingProgress: 0,
       deliveryProgressText: '未发货',
@@ -259,6 +328,7 @@ const initialState = {
       orderDate: '2025-05-01',
       expectDeliveryDate: '2025-05-15',
       status: '待审核',
+      isUrgent: true,
       totalAmount: 8000,
       processingProgress: 0,
       deliveryProgressText: '未发货',
@@ -275,6 +345,7 @@ const initialState = {
       orderDate: '2025-05-01',
       expectDeliveryDate: '2025-05-10',
       status: '待发货',
+      isUrgent: false,
       totalAmount: 12000,
       processingProgress: 100,
       deliveryProgressText: '待发货',
@@ -373,6 +444,7 @@ const initialState = {
       orderDate: '2025-04-29', 
       date: '2025-04-29',
       status: '草稿', 
+      isUrgent: false,
       returnStatus: '待收货',
       auditResult: null,
       reason: '色差问题',
@@ -391,6 +463,7 @@ const initialState = {
       orderDate: '2025-04-29', 
       date: '2025-04-29',
       status: '待发货', 
+      isUrgent: true,
       returnStatus: '待收货',
       auditResult: null,
       reason: '尺寸不符',
@@ -409,6 +482,7 @@ const initialState = {
       orderDate: '2025-04-29', 
       date: '2025-04-29',
       status: '待发货', 
+      isUrgent: false,
       returnStatus: '待收货',
       auditResult: '审批拒绝',
       reason: '质量瑕疵',
@@ -427,6 +501,7 @@ const initialState = {
       orderDate: '2025-04-29', 
       date: '2025-04-29',
       status: '已发货', 
+      isUrgent: true,
       returnStatus: '待收货',
       auditResult: null,
       reason: '客户要求更换颜色',
@@ -445,6 +520,7 @@ const initialState = {
       orderDate: '2025-04-29', 
       date: '2025-04-29',
       status: '已完成', 
+      isUrgent: false,
       returnStatus: '已收货',
       auditResult: '审批通过',
       reason: '发错货',
@@ -453,6 +529,25 @@ const initialState = {
       items: [
         { id: 'exi5_1', productName: '配件E', quantity: 10, unitPrice: 120, action: '退回', currentReturnQuantity: 10, originalUnitPrice: 120 },
         { id: 'exi5_2', productName: '配件E', quantity: 10, unitPrice: 120, action: '换出' }
+      ]
+    },
+    { 
+      id: 'ex6', 
+      exchangeNo: 'EX20250429006', 
+      orderNo: 'SO20250428006', 
+      customerName: '芝华仕头等舱', 
+      orderDate: '2025-04-29', 
+      date: '2025-04-29',
+      status: '备货中', 
+      isUrgent: false,
+      returnStatus: '已收货',
+      auditResult: '审批通过',
+      reason: '备件少发',
+      amount: 0, 
+      salesperson: '王经理',
+      items: [
+        { id: 'exi6_1', productName: '配件F', quantity: 2, unitPrice: 180, action: '退回', currentReturnQuantity: 2, originalUnitPrice: 180 },
+        { id: 'exi6_2', productName: '配件F', quantity: 2, unitPrice: 180, action: '换出' }
       ]
     }
   ],
@@ -464,6 +559,7 @@ const initialState = {
         customerName: '美家家居', 
         orderDate: '2025-05-09', 
         status: '草稿', 
+        isUrgent: false,
         salesperson: '张经理', 
         items: [{ id: 'rei1', productName: '配件A', quantity: 1, unitPrice: 100 }]
     },
@@ -474,6 +570,7 @@ const initialState = {
         customerName: '居然之家', 
         orderDate: '2025-05-09', 
         status: '待发货', 
+        isUrgent: true,
         auditResult: '审批拒绝',
         salesperson: '李主管', 
         items: [{ id: 'rei2', productName: '配件B', quantity: 2, unitPrice: 150 }]
@@ -485,6 +582,7 @@ const initialState = {
         customerName: '红星美凯龙', 
         orderDate: '2025-05-09', 
         status: '待发货', 
+        isUrgent: false,
         auditResult: '审批拒绝',
         salesperson: '王经理', 
         items: [{ id: 'rei3', productName: '配件C', quantity: 5, unitPrice: 200 }]
@@ -496,6 +594,7 @@ const initialState = {
         customerName: '宜家家居', 
         orderDate: '2025-05-09', 
         status: '已发货', 
+        isUrgent: true,
         salesperson: '张销售', 
         items: [{ id: 'rei4', productName: '配件D', quantity: 3, unitPrice: 300 }]
     },
@@ -506,8 +605,33 @@ const initialState = {
         customerName: '顾家家居', 
         orderDate: '2025-05-09', 
         status: '已完成', 
+        isUrgent: false,
         salesperson: '李业务', 
         items: [{ id: 'rei5', productName: '配件E', quantity: 10, unitPrice: 120 }]
+    },
+    { 
+        id: 're6', 
+        replenishNo: 'RE-REP-20250519-06', 
+        orderNo: 'SO20250501004', 
+        customerName: '美家家居', 
+        orderDate: '2025-05-19', 
+        status: '待发货', 
+        isUrgent: false,
+        auditResult: null,
+        salesperson: '张经理', 
+        items: [{ id: 'rei6', productName: '测试产品', quantity: 1, unitPrice: 5000 }]
+    },
+    { 
+        id: 're7', 
+        replenishNo: 'RE-REP-20250519-07', 
+        orderNo: 'SO20250501007', 
+        customerName: '林氏家居', 
+        orderDate: '2025-05-19', 
+        status: '备货中', 
+        isUrgent: false,
+        auditResult: '审批通过',
+        salesperson: '张经理', 
+        items: [{ id: 'rei7', productName: '高档皮质拉手', quantity: 4, unitPrice: 120 }]
     }
   ],
   returns: [
@@ -520,6 +644,7 @@ const initialState = {
       orderDate: '2025-04-28', 
       date: '2025-04-29', 
       status: '草稿', 
+      isUrgent: true,
       returnAmount: 320, 
       returnReason: '质量瑕疵', 
       salesperson: '张经理', 
@@ -549,6 +674,7 @@ const initialState = {
       orderDate: '2025-04-28', 
       date: '2025-04-29', 
       status: '待收货', 
+      isUrgent: false,
       returnAmount: 200, 
       returnReason: '型号发错', 
       salesperson: '李销售', 
@@ -578,6 +704,7 @@ const initialState = {
       orderDate: '2025-04-28', 
       date: '2025-04-29', 
       status: '待收货', 
+      isUrgent: true,
       auditResult: '审批拒绝', 
       returnAmount: 300, 
       returnReason: '颜色不符', 
@@ -597,69 +724,6 @@ const initialState = {
         unitPrice: 100, 
         amount: 300,
         remark: '色差严重'
-      }] 
-    },
-    { 
-      id: 'ret4', 
-      returnNo: 'RT20250429004', 
-      sourceOrderNo: 'SO20250428004', 
-      customerName: '上海新世界', 
-      customerType: '大客户', 
-      orderDate: '2025-04-28', 
-      date: '2025-04-29', 
-      status: '待财务审批', 
-      returnAmount: 500, 
-      returnReason: '有划痕', 
-      salesperson: '赵主管', 
-      subsidiary: '上海分公司',
-      customerRemark: '外包装有破损',
-      items: [{ 
-        id: 'rti4', 
-        productCode: 'ACC004', 
-        productName: '配件D', 
-        spec: '加宽/金色', 
-        property: '常规', 
-        unit: '个', 
-        unitPrice: 500,
-        originalPrice: 500,
-        returnUnitPrice: 500,
-        originalQuantity: 20, 
-        shippedQuantity: 10, 
-        returnedQuantity: 0, 
-        returnQuantity: 1, 
-        amount: 500 
-      }] 
-    },
-    { 
-      id: 'ret5', 
-      returnNo: 'RT20250429005', 
-      sourceOrderNo: 'SO20250428005', 
-      customerName: '顾家家居', 
-      customerType: '经销商', 
-      orderDate: '2025-04-28', 
-      date: '2025-04-29', 
-      status: '待财务审批', 
-      auditResult: '审批拒绝', 
-      returnAmount: 600, 
-      returnReason: '尺寸不对', 
-      salesperson: '张经理', 
-      subsidiary: '广东分公司',
-      customerRemark: '客户急用，需尽快处理',
-      items: [{ 
-        id: 'rti5', 
-        productCode: 'ACC005', 
-        productName: '配件E', 
-        spec: '标准/磨砂', 
-        property: '常规', 
-        unit: '套', 
-        unitPrice: 300,
-        originalPrice: 305,
-        returnUnitPrice: 300,
-        originalQuantity: 40, 
-        shippedQuantity: 30, 
-        returnedQuantity: 5, 
-        returnQuantity: 2, 
-        amount: 600 
       }] 
     },
     { id: 'ret6', returnNo: 'RT20250429006', sourceOrderNo: 'SO20250428006', customerName: '雅居家具城', customerType: '代理商', orderDate: '2025-04-28', date: '2025-04-29', status: '已完成', returnAmount: 150, returnReason: '质量问题', salesperson: '刘销售', items: [{ id: 'rti6', productCode: 'ACC006', productName: '配件F', returnQuantity: 1, unitPrice: 150, amount: 150 }] },
@@ -682,6 +746,7 @@ const initialState = {
       operator: '管理员',
       auditTime: '2025-04-23 10:00:00',
       remark: '首批原材料到货',
+      images: ['https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400&q=80'],
       items: [{ productCode: 'MAT001', productName: '红橡木板材', quantity: 2, unit: 'm³', spec: '2000*200*20', price: 4200.00, warehouseName: '原材料仓库', bin: 'R-01-01' }] 
     },
     { 
@@ -709,6 +774,7 @@ const initialState = {
       auditResult: '-',
       operator: '管理员',
       remark: '客户退货草稿',
+      images: ['https://images.unsplash.com/photo-1595246140876-2177588e5d38?w=400&q=80'],
       items: [{ productCode: 'PROD001', productName: '皮沙发', quantity: 1, unit: '个', spec: '真皮/咖啡色', price: 2500.00, warehouseName: '主成品仓库', bin: 'A-01-01' }] 
     },
     {
@@ -723,6 +789,7 @@ const initialState = {
       auditResult: '待审',
       operator: '李仓库员',
       remark: '待审核采购单',
+      images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80'],
       items: [{ productCode: 'ACC001', productName: '不锈钢铰链', quantity: 500, pendingQty: 500, unit: '对', spec: '110度/自卸', price: 12.00, warehouseName: '原材料仓库', bin: 'R-01-02' }]
     },
     {
@@ -738,6 +805,7 @@ const initialState = {
       operator: '管理员',
       auditTime: '2025-05-09 11:00:00',
       remark: '已审核委外入库',
+      images: ['https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=400&q=80'],
       items: [{ productCode: 'ACC001', productName: '不锈钢铰链', quantity: 100, processQty: 200, finishedQty: 100, unit: '对', spec: '110度/自卸', price: 5.5, warehouseName: '原材料仓库', bin: 'R-01-01' }]
     },
     {
@@ -1018,6 +1086,119 @@ const initialState = {
     { id: 'w3', name: '主成品仓库' },
     { id: 'w4', name: '原材料仓库' }
   ],
+  stockAdjustmentOrders: [
+    {
+      id: 'saj1',
+      orderNo: 'SAJ20250430001',
+      type: '盘点任务生成',
+      stockType: '成品',
+      taskNo: 'ST20250429001',
+      products: ['皮沙发', '实木餐桌'],
+      status: '', // For task-generated, status and audit result are empty
+      auditResult: '',
+      operator: '管理员',
+      createTime: '2025-04-30 10:00:00'
+    },
+    {
+      id: 'saj2',
+      orderNo: 'SAJ20250501001',
+      type: '手动创建',
+      stockType: '原材料',
+      taskNo: '',
+      products: ['红橡木板材'],
+      status: '草稿',
+      auditResult: '',
+      operator: '管理员',
+      createTime: '2025-05-01 09:30:00'
+    },
+    {
+      id: 'saj3',
+      orderNo: 'SAJ20250502001',
+      type: '手动创建',
+      stockType: '成品',
+      taskNo: '',
+      products: ['极简书架'],
+      status: '待审核',
+      auditResult: '',
+      operator: '李主管',
+      createTime: '2025-05-02 11:20:00'
+    },
+    {
+      id: 'saj4',
+      orderNo: 'SAJ20250503001',
+      type: '手动创建',
+      stockType: '成品',
+      taskNo: '',
+      products: ['皮沙发'],
+      status: '已审核',
+      auditResult: '审核通过',
+      operator: '管理员',
+      auditTime: '2025-05-03 14:00:00',
+      createTime: '2025-05-03 08:00:00'
+    },
+    {
+      id: 'saj5',
+      orderNo: 'SAJ20250504001',
+      type: '手动创建',
+      stockType: '原材料',
+      taskNo: '',
+      products: ['不锈钢铰链'],
+      status: '已审核',
+      auditResult: '审核拒绝',
+      operator: '张销售',
+      auditTime: '2025-05-04 16:00:00',
+      createTime: '2025-05-04 10:00:00'
+    },
+    {
+      id: 'saj6',
+      orderNo: 'SAJ20250505001',
+      type: '盘点任务生成',
+      stockType: '原材料',
+      taskNo: 'ST20250501002',
+      products: ['抽屉滑轨', '自攻螺丝'],
+      status: '',
+      auditResult: '',
+      operator: '李仓库员',
+      createTime: '2025-05-05 09:00:00'
+    },
+    {
+      id: 'saj7',
+      orderNo: 'SAJ20250506001',
+      type: '手动创建',
+      stockType: '半成品',
+      taskNo: '',
+      products: ['沙发框架', '喷漆背板'],
+      status: '草稿',
+      auditResult: '',
+      operator: '管理员',
+      createTime: '2025-05-06 14:30:00'
+    },
+    {
+      id: 'saj8',
+      orderNo: 'SAJ20250507001',
+      type: '手动创建',
+      stockType: '成品',
+      taskNo: '',
+      products: ['实木双人床'],
+      status: '待审核',
+      auditResult: '',
+      operator: '李主管',
+      createTime: '2025-05-07 10:15:00'
+    },
+    {
+      id: 'saj9',
+      orderNo: 'SAJ20250508001',
+      type: '手动创建',
+      stockType: '成品',
+      taskNo: '',
+      products: ['简约衣柜'],
+      status: '已审核',
+      auditResult: '审核通过',
+      operator: '王财务',
+      auditTime: '2025-05-08 15:00:00',
+      createTime: '2025-05-08 09:00:00'
+    }
+  ],
   suppliers: [
     { id: 'sup1', name: '优质材料供应商A' },
     { id: 'sup2', name: '辅料供应中心B' }
@@ -1034,11 +1215,11 @@ const initialState = {
     { id: 'cr1', recordNo: 'CR20250428001', flowNo: 'FLOW20250428001', orderNo: 'SO20250428001', orderType: '销售订单', customerName: '美家家居', claimAmount: 5000, claimTime: '2025-04-28 14:00', claimUser: '管理员', status: '审批通过' }
   ],
   products: [
-    { id: 'p1', code: 'PROD001', name: '皮沙发', spec: '真皮/咖啡色', unit: '个', price: 2500, materialCategory: '生产物料', category: '成品', standardCost: 1500, stock: 45, isSalable: true, batchNo: 'B20250429', warehouse: '主成品仓库', location: 'A-01-01', safeQty: 20, lastCheckDate: '2025-04-20', department: '-', user: '-' },
-    { id: 'p2', code: 'PROD002', name: '实木餐桌', spec: '1.6m圆形', unit: '张', price: 3200, materialCategory: '生产物料', category: '成品', standardCost: 2000, stock: 12, isSalable: true, batchNo: 'B20250429', warehouse: '主成品仓库', location: 'A-01-02', safeQty: 10, lastCheckDate: '2025-04-20', department: '-', user: '-' },
-    { id: 'p3', code: 'PROD003', name: '极简书架', spec: '胡桃木', unit: '组', price: 1800, materialCategory: '生产物料', category: '成品', standardCost: 1000, stock: 5, isSalable: true, batchNo: 'B20250430', warehouse: '主成品仓库', location: 'A-01-03', safeQty: 10, lastCheckDate: '2025-04-25', department: '-', user: '-' },
-    { id: 'p4', code: 'MAT001', name: '红橡木板材', spec: '2000*200*20', unit: 'm³', price: 4500, materialCategory: '生产物料', category: '原材料', standardCost: 3500, stock: 25, isSalable: false, batchNo: 'B20250429', warehouse: '原材料仓库', location: 'R-01-01', safeQty: 50, lastCheckDate: '2025-04-25', department: '-', user: '-' },
-    { id: 'p5', code: 'ACC001', name: '不锈钢铰链', spec: '110度/自卸', unit: '对', price: 12, materialCategory: '生产物料', category: '原材料', standardCost: 8, stock: 1000, isSalable: true, batchNo: 'B20250430', warehouse: '原材料仓库', location: 'R-01-02', safeQty: 100, lastCheckDate: '2025-04-18', department: '-', user: '-' },
+    { id: 'p1', code: 'PROD001', name: '皮沙发', spec: '真皮/咖啡色', unit: '个', price: 2500, materialCategory: '生产物料', category: '成品', standardCost: 1500, stock: 45, occupiedQty: 15, availableQty: 30, isSalable: true, batchNo: 'B20250429', warehouse: '主成品仓库', location: 'A-01-01', safeQty: 20, lastCheckDate: '2025-04-20', department: '-', user: '-' },
+    { id: 'p2', code: 'PROD002', name: '实木餐桌', spec: '1.6m圆形', unit: '张', price: 3200, materialCategory: '生产物料', category: '成品', standardCost: 2000, stock: 12, occupiedQty: 2, availableQty: 10, isSalable: true, batchNo: 'B20250429', warehouse: '主成品仓库', location: 'A-01-02', safeQty: 10, lastCheckDate: '2025-04-20', department: '-', user: '-' },
+    { id: 'p3', code: 'PROD003', name: '极简书架', spec: '胡桃木', unit: '组', price: 1800, materialCategory: '生产物料', category: '成品', standardCost: 1000, stock: 5, occupiedQty: 0, availableQty: 5, isSalable: true, batchNo: 'B20250430', warehouse: '主成品仓库', location: 'A-01-03', safeQty: 10, lastCheckDate: '2025-04-25', department: '-', user: '-' },
+    { id: 'p4', code: 'MAT001', name: '红橡木板材', spec: '2000*200*20', unit: 'm³', price: 4500, materialCategory: '生产物料', category: '原材料', standardCost: 3500, stock: 25, occupiedQty: 5, availableQty: 20, isSalable: false, batchNo: 'B20250429', warehouse: '原材料仓库', location: 'R-01-01', safeQty: 50, lastCheckDate: '2025-04-25', department: '-', user: '-' },
+    { id: 'p5', code: 'ACC001', name: '不锈钢铰链', spec: '110度/自卸', unit: '对', price: 12, materialCategory: '生产物料', category: '原材料', standardCost: 8, stock: 1000, occupiedQty: 200, availableQty: 800, isSalable: true, batchNo: 'B20250430', warehouse: '原材料仓库', location: 'R-01-02', safeQty: 100, lastCheckDate: '2025-04-18', department: '-', user: '-' },
     { id: 'p6', code: 'CONS001', name: 'A4打印纸', spec: '80g/500张', unit: '包', price: 35, materialCategory: '低值易耗品', category: '-', standardCost: 25, stock: 25, isSalable: false, batchNo: '-', warehouse: '综合行政中心', location: 'Office-01', safeQty: 50, lastCheckDate: '2025-04-28', department: '-', user: '-' },
     { id: 'p7', code: 'FIX001', assetCode: 'ASSET-2024-001', name: '服务器', spec: 'DELL PowerEdge R740', unit: '台', price: 35000, materialCategory: '固定资产', category: '-', standardCost: 28000, stock: 2, isSalable: false, batchNo: 'SN-202409012', warehouse: '机房', location: 'Rack-01', safeQty: 1, lastCheckDate: '2025-03-15', department: '技术部', user: '张三' },
     { id: 'p8', code: 'FIX002', assetCode: 'ASSET-2024-002', name: '人体工学椅', spec: '网易严选', unit: '把', price: 1299, materialCategory: '固定资产', category: '-', standardCost: 800, stock: 120, isSalable: false, batchNo: '-', warehouse: '二楼办公区', location: 'Area-B12', safeQty: 10, lastCheckDate: '2025-05-01', department: '行政部', user: '李四' }
@@ -1051,9 +1232,12 @@ const initialState = {
       customerName: '美家家居', 
       customerCode: 'C001', 
       customerType: '独立店', 
-      date: '2025-04-23', 
+      date: '2025-04-23 10:30:00', 
       amount: 3000, 
-      status: null, 
+      givingAmount: 300,
+      paymentMethod: '银行转账',
+      status: '生效', 
+      operator: '管理员',
       salesperson: '张三', 
       remark: '年度活动充值' 
     },
@@ -1064,9 +1248,12 @@ const initialState = {
       customerName: '雅居饰界', 
       customerCode: 'C002', 
       customerType: '分销商', 
-      date: '2025-04-24', 
+      date: '2025-04-24 14:20:00', 
       amount: 50000, 
-      status: null, 
+      givingAmount: 5000,
+      paymentMethod: '微信支付',
+      status: '生效', 
+      operator: '张三',
       salesperson: '李四', 
       remark: '预存货款' 
     },
@@ -1077,9 +1264,12 @@ const initialState = {
       customerName: '雅居饰界', 
       customerCode: 'C002', 
       customerType: '分销商', 
-      date: '2025-04-25', 
+      date: '2025-04-25 09:15:00', 
       amount: 30000, 
-      status: null, 
+      givingAmount: 2000,
+      paymentMethod: '支付宝',
+      status: '生效', 
+      operator: '李四',
       salesperson: '李四', 
       remark: '追加预存' 
     },
@@ -1090,11 +1280,43 @@ const initialState = {
       customerName: '全友家居服务中心', 
       customerCode: 'C007', 
       customerType: '特许经营', 
-      date: '2025-04-26', 
+      date: '2025-04-26 16:45:00', 
       amount: 120000, 
-      status: null, 
+      givingAmount: 10000,
+      paymentMethod: '对公转账',
+      status: '待核收', 
+      operator: '李四',
       salesperson: '李四', 
       remark: '大额入金' 
+    }
+  ],
+  consumptions: [
+    { 
+      id: 'xf1', 
+      orderNo: 'SOD-20250427-0001', 
+      customerId: 'cus001', 
+      amount: 1500, 
+      type: '订单抵扣', 
+      time: '2025-04-27 11:20:00',
+      status: '已扣费'
+    },
+    { 
+      id: 'xf2', 
+      orderNo: 'SOD-20250428-0002', 
+      customerId: 'cus002', 
+      amount: 12000, 
+      type: '订单抵扣', 
+      time: '2025-04-28 15:30:00',
+      status: '已扣费'
+    },
+    { 
+      id: 'xf3', 
+      orderNo: 'SOD-20250429-0003', 
+      customerId: 'cus002', 
+      amount: 5000, 
+      type: '订单抵扣', 
+      time: '2025-04-29 09:45:00',
+      status: '已扣费'
     }
   ],
   sizeRules: [
@@ -1148,13 +1370,14 @@ const initialState = {
       approvalStatus: '待审批',
       auditResult: '-',
       date: '2025-04-29', 
+      createdAt: '2025-04-29 10:00:00',
       salesperson: '张经理',
       totalAmount: 18000,
       contactName: '张总',
       region: '华南大区',
       expectDate: '2025-05-02',
       items: [
-        { id: 'dni1', productName: '皮沙发', spec: '真皮/咖啡色', quantity: 2, price: 9500, amount: 19000 }
+        { id: 'dni1', productName: '皮沙发', spec: '真皮/咖啡色', quantity: 2, currentQty: 2, price: 9500, amount: 19000 }
       ]
     },
     { 
@@ -1200,65 +1423,59 @@ const initialState = {
       paymentImages: [{ url: 'https://images.unsplash.com/photo-1593642532400-2682810df593?w=200' }]
     },
     { 
-      id: 'dn3', 
-      noticeNo: 'FH20250429003', 
-      orderNo: 'SOD-20250427-0001', 
-      customerName: '宏发商贸', 
-      status: '待仓库审批', 
-      approvalStatus: '待审批',
+      id: 'dn6', 
+      noticeNo: 'FH20250515001', 
+      orderNo: 'SOD-20250510-0103', 
+      customerName: '瑞龙实业', 
+      status: '已出库', 
+      approvalStatus: '已审批',
       auditResult: '通过',
-      date: '2025-04-29', 
-      createdAt: '2025-04-28 15:45:00',
-      salesperson: '张经理',
+      date: '2025-05-15', 
+      createdAt: '2025-05-15 09:10:00',
+      salesperson: '管理员',
       settlementMethod: '月结',
-      totalAmount: 50000,
-      contactName: '赵红',
-      region: '西南大区',
-      expectDate: '2025-05-01',
+      totalAmount: 12000,
+      contactName: '周龙',
       items: [
-        { id: 'dni3', productCode: 'PROD003', productName: '极简书架', spec: '胡桃木', orderQty: 20, shippedQty: 10, currentQty: 5, unitPrice: 1700, amount: 8500 }
-      ],
-      financeAuditResult: '通过',
-      financeAuditRemark: '余额充足，同意发货',
-      financeAuditor: '财务主管',
-      financeAuditTime: '2025-04-29 10:20:00'
-    },
-    { 
-      id: 'dn_rejected', 
-      noticeNo: 'FH20250429004', 
-      orderNo: 'SOD-20250428-0002', 
-      customerName: '创新科技', 
-      status: '待仓库审批', 
-      approvalStatus: '未通过',
-      auditResult: '审批通过',
-      date: '2025-04-29', 
-      createdAt: '2025-04-29 11:00:15',
-      salesperson: '王业务',
-      settlementMethod: '月结',
-      totalAmount: 18000,
-      contactName: '刘强',
-      region: '华南大区',
-      expectDate: '2025-05-08',
-      items: [
-        { id: 'dni_r', productCode: 'PROD004', productName: '办公桌', spec: '1.2m', orderQty: 10, shippedQty: 0, currentQty: 10, unitPrice: 1800, amount: 18000 }
+        { id: 'dni6', productName: '办公隔断', spec: '标准型', quantity: 4, currentQty: 4, price: 3000, amount: 12000 }
       ]
     },
     { 
-      id: 'dn5', 
-      noticeNo: 'FH20250429005', 
-      orderNo: 'SOD-20250429-0001', 
-      customerName: '创意空间', 
-      status: '已审批', 
-      approvalStatus: '已审批',
+      id: 'dn-wh-1', 
+      noticeNo: 'FH20260520001', 
+      orderNo: 'SOD-20260520-0081', 
+      customerName: '罗莱生活百货', 
+      status: '待仓库审批', 
+      settlementMethod: '月结',
+      approvalStatus: '待审批',
       auditResult: '-',
-      date: '2025-04-30', 
-      salesperson: '管理员',
-      totalAmount: 25000,
-      contactName: '沈想',
+      date: '2026-05-20', 
+      createdAt: '2026-05-20 14:20:00',
+      salesperson: '张经理',
+      totalAmount: 15400,
+      contactName: '梁主管',
       region: '华南大区',
-      expectDate: '2025-05-10',
       items: [
-        { id: 'dni5', productName: '电脑椅', spec: '人体工学', quantity: 10, price: 1200, amount: 12000 }
+        { id: 'dni-wh1', productName: '极简餐椅', spec: '真皮/黑色', quantity: 22, currentQty: 22, price: 700, amount: 15400 }
+      ]
+    },
+    { 
+      id: 'dn-wh-2', 
+      noticeNo: 'FH20260522002', 
+      orderNo: 'SOD-20260522-0092', 
+      customerName: '芝华仕旗舰店', 
+      status: '待仓库审批', 
+      settlementMethod: '账期',
+      approvalStatus: '待审批',
+      auditResult: '-',
+      date: '2026-05-22', 
+      createdAt: '2026-05-22 17:05:00',
+      salesperson: '王经理',
+      totalAmount: 28000,
+      contactName: '张店长',
+      region: '华北大区',
+      items: [
+        { id: 'dni-wh2', productName: '智能真皮单人沙发', spec: '咖啡色/自动', quantity: 4, currentQty: 4, price: 7000, amount: 28000 }
       ]
     }
   ],
@@ -1332,14 +1549,26 @@ const initialState = {
     { id: 'pv1', categoryId: 'cat1', discountRate: 5.0, startDate: '2025-04-01', endDate: null, status: '生效', reason: '初始设置' }
   ],
   batches: [
-    { id: 'b1', batchNo: 'BATCH20250429001', relOrderNo: 'WO20250429001', warehouseName: '主成品仓库', location: 'A-01-01', createDate: '2025-04-29', status: '有效' },
-    { id: 'b2', batchNo: 'B20260510001', relOrderNo: 'WO20260510001', warehouseName: '广州总仓', location: 'G-01-01', createDate: '2026-05-10', status: '有效' },
-    { id: 'b3', batchNo: 'B20260510002', relOrderNo: 'WO20260510002', warehouseName: '珠海分仓', location: 'Z-02-05', createDate: '2026-05-10', status: '有效' },
-    { id: 'b4', batchNo: 'B20250501001', relOrderNo: 'WO20250501001', warehouseName: '深圳中转库', location: 'S-03-01', createDate: '2025-05-01', status: '已占用' },
-    { id: 'b5', batchNo: 'B20250501002', relOrderNo: 'WO20250501002', warehouseName: '杭州备货中心', location: 'H-01-12', createDate: '2025-05-01', status: '有效' }
+    { id: 'b1', batchNo: 'BATCH20250429001', relInboundNo: 'IBN20250429001', warehouseName: '主成品仓库', location: 'A-01-01', createDate: '2025-04-29', status: '有效' },
+    { id: 'b2', batchNo: 'B20260510001', relInboundNo: 'IBN20260510001', warehouseName: '广州总仓', location: 'G-01-01', createDate: '2026-05-10', status: '有效' },
+    { id: 'b3', batchNo: 'B20260510002', relInboundNo: 'IBN20260510002', warehouseName: '珠海分仓', location: 'Z-02-05', createDate: '2026-05-10', status: '有效' },
+    { id: 'b4', batchNo: 'B20250501001', relInboundNo: 'IBN20250501001', warehouseName: '深圳中转库', location: 'S-03-01', createDate: '2025-05-01', status: '已占用' },
+    { id: 'b5', batchNo: 'B20250501002', relInboundNo: 'IBN20250501002', warehouseName: '杭州备货中心', location: 'H-01-12', createDate: '2025-05-01', status: '有效' }
   ],
   labelRules: [
     { id: 'lr1', name: '成品标签', template: 'NAME-CODE-DATE', status: '启用' }
+  ],
+  priceStrategiesLedger: [
+    { id: 'psl1', code: 'PS2026001', customerCategory: '经销商', customerLevel: '', customerRegion: '', productInfo: '', effectiveDate: '2026-01-01', expiryDate: '2026-12-31', status: '生效', discountRate: 0.90, operator: '管理员', operationTime: '2026-01-01 10:00:00', enabled: true },
+    { id: 'psl2', code: 'PS2026002', customerCategory: '', customerLevel: 'B级', customerRegion: '', productInfo: '', effectiveDate: '2025-02-01', expiryDate: '2026-04-30', status: '失效', discountRate: 0.95, operator: '张三', operationTime: '2025-02-01 14:30:00', enabled: true },
+    { id: 'psl3', code: 'PS2026003', customerCategory: '', customerLevel: '', customerRegion: '西南', productInfo: '', effectiveDate: '2026-03-01', expiryDate: '2027-02-28', status: '生效', discountRate: 0.80, operator: '李四', operationTime: '2026-03-01 09:15:00', enabled: true },
+    { id: 'psl4', code: 'PS2026004', customerCategory: '', customerLevel: '', customerRegion: '', productInfo: 'PROD001/皮沙发', effectiveDate: '2026-07-01', expiryDate: '2027-07-01', status: '待生效', discountRate: 0.85, operator: '管理员', operationTime: '2026-05-18 16:45:00', enabled: true },
+    { id: 'psl5', code: 'PS2026005', customerCategory: '大客户', customerLevel: '', customerRegion: '', productInfo: '', effectiveDate: '2026-04-01', expiryDate: '2026-09-30', status: '生效', discountRate: 0.88, operator: '王五', operationTime: '2026-04-01 11:20:00', enabled: true },
+    { id: 'psl6', code: 'PS2026006', customerCategory: '', customerLevel: 'B级', customerRegion: '', productInfo: '', effectiveDate: '2025-05-01', expiryDate: '2025-11-30', status: '失效', discountRate: 0.92, operator: '赵六', operationTime: '2025-05-01 08:30:00', enabled: true },
+    { id: 'psl7', code: 'PS2026007', customerCategory: '', customerLevel: '', customerRegion: '华中', productInfo: '', effectiveDate: '2026-08-01', expiryDate: '2026-12-31', status: '待生效', discountRate: 0.87, operator: '张三', operationTime: '2026-05-19 09:10:00', enabled: true },
+    { id: 'psl8', code: 'PS2026008', customerCategory: '', customerLevel: '', customerRegion: '', productInfo: 'PROD002/实木餐桌', effectiveDate: '2026-05-01', expiryDate: '2027-06-30', status: '生效', discountRate: 0.90, operator: '管理员', operationTime: '2026-05-01 10:50:00', enabled: true },
+    { id: 'psl9', code: 'PS2026009', customerCategory: '分销商', customerLevel: '', customerRegion: '', productInfo: '', effectiveDate: '2025-01-01', expiryDate: '2025-12-31', status: '失效', discountRate: 0.75, operator: '李四', operationTime: '2025-01-01 15:20:00', enabled: true },
+    { id: 'psl10', code: 'PS2026010', customerCategory: '', customerLevel: 'A级', customerRegion: '', productInfo: '', effectiveDate: '2026-01-01', expiryDate: '2026-07-31', status: '生效', discountRate: 0.82, operator: '王五', operationTime: '2026-01-01 13:40:00', enabled: true },
   ],
   subcontractPurchaseOrders: [
     { 
@@ -1621,7 +1850,9 @@ export const customerCategories = [
 export const mockQuotations = quotations;
 export const initialSizeRules = initialState.sizeRules;
 export const rechargeOrders = initialState.recharges;
+export const consumptionRecords = initialState.consumptions;
 export const initialClaimRecords = initialState.claimRecords;
+export const stockingPlans = initialState.stockingPlans;
 export const getDiscountRate = (type) => {
   const rates = {
     '独立店': 0,

@@ -8,6 +8,7 @@ import { PlusOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { employees } from '../../mock';
 import { getDiscountRate } from '../../mock';
+import { products } from '../../mock/masterData';
 import CustomerSelectModal from '../quotation/CustomerSelectModal';
 
 const { TextArea } = Input;
@@ -20,6 +21,60 @@ const ConsignmentFormModal = ({ open, onCancel, onSave, editingRecord }) => {
   const [materials, setMaterials] = useState([]);
   const [processItems, setProcessItems] = useState([]);
   const [otherFees, setOtherFees] = useState(0);
+
+  const [searching, setSearching] = useState(false);
+  const [searchOptions, setSearchOptions] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      setSearchOptions(products);
+    }
+  }, [open]);
+
+  const handleMaterialSearch = (newValue) => {
+    setSearching(true);
+    // Simulate real remote latency
+    setTimeout(() => {
+      if (newValue) {
+        const val = newValue.toLowerCase();
+        const filtered = products.filter(
+          p => p.code.toLowerCase().includes(val) || p.name.toLowerCase().includes(val)
+        );
+        setSearchOptions(filtered);
+      } else {
+        setSearchOptions(products);
+      }
+      setSearching(false);
+    }, 250);
+  };
+
+  const handleSelectMaterialCode = (rowId, code) => {
+    const selected = products.find(p => p.code === code);
+    if (selected) {
+      setMaterials(materials.map(item => item.id === rowId ? {
+        ...item,
+        materialCode: selected.code,
+        materialName: selected.name,
+        spec: selected.spec,
+        unit: selected.unit
+      } : item));
+      message.success(`已联动回填物料: ${selected.name}`);
+    }
+  };
+
+  const handleSelectMaterialName = (rowId, name) => {
+    const selected = products.find(p => p.name === name);
+    if (selected) {
+      setMaterials(materials.map(item => item.id === rowId ? {
+        ...item,
+        materialCode: selected.code,
+        materialName: selected.name,
+        spec: selected.spec,
+        unit: selected.unit
+      } : item));
+      message.success(`已联动回填物料编码: ${selected.code}`);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -37,7 +92,8 @@ const ConsignmentFormModal = ({ open, onCancel, onSave, editingRecord }) => {
         setMaterials(editingRecord.materials || []);
         setProcessItems(editingRecord.items || []);
         setOtherFees(editingRecord.otherFees || 0);
-      } else { form.setFieldsValue({ orderNo: `ORDER-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}` });
+      } else {
+        const nextNo = `CON-${dayjs().format('YYYYMMDD')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
         form.setFieldsValue({
           orderNo: nextNo,
           orderDate: dayjs(),
@@ -101,8 +157,50 @@ const ConsignmentFormModal = ({ open, onCancel, onSave, editingRecord }) => {
   };
 
   const materialColumns = [
-    { title: '物料编码', render: (_, rec) => <Input value={rec.materialCode} onChange={e => handleItemChange(materials, setMaterials, rec.id, 'materialCode', e.target.value)} /> },
-    { title: '物料名称', render: (_, rec) => <Input value={rec.materialName} onChange={e => handleItemChange(materials, setMaterials, rec.id, 'materialName', e.target.value)} /> },
+    { 
+      title: '物料编码', 
+      render: (_, rec) => {
+        const opts = [...searchOptions];
+        if (rec.materialCode && !opts.some(o => o.code === rec.materialCode)) {
+          opts.unshift({ code: rec.materialCode, name: rec.materialName || rec.materialCode, spec: rec.spec, unit: rec.unit });
+        }
+        return (
+          <Select 
+            showSearch
+            placeholder="轻触检索编码"
+            value={rec.materialCode || undefined}
+            filterOption={false}
+            onSearch={handleMaterialSearch}
+            onChange={val => handleSelectMaterialCode(rec.id, val)}
+            loading={searching}
+            style={{ width: '100%', minWidth: '150px' }}
+            options={opts.map(o => ({ value: o.code, label: `${o.code} (${o.name})` }))}
+          />
+        );
+      }
+    },
+    { 
+      title: '物料名称', 
+      render: (_, rec) => {
+        const opts = [...searchOptions];
+        if (rec.materialName && !opts.some(o => o.name === rec.materialName)) {
+          opts.unshift({ code: rec.materialCode, name: rec.materialName, spec: rec.spec, unit: rec.unit });
+        }
+        return (
+          <Select 
+            showSearch
+            placeholder="轻触检索名称"
+            value={rec.materialName || undefined}
+            filterOption={false}
+            onSearch={handleMaterialSearch}
+            onChange={val => handleSelectMaterialName(rec.id, val)}
+            loading={searching}
+            style={{ width: '100%', minWidth: '150px' }}
+            options={opts.map(o => ({ value: o.name, label: `${o.name} [${o.code}]` }))}
+          />
+        );
+      }
+    },
     { title: '规格', render: (_, rec) => <Input value={rec.spec} onChange={e => handleItemChange(materials, setMaterials, rec.id, 'spec', e.target.value)} /> },
     { title: '单位', width: 80, render: (_, rec) => <Input value={rec.unit} onChange={e => handleItemChange(materials, setMaterials, rec.id, 'unit', e.target.value)} /> },
     { title: '来料数量', width: 100, render: (_, rec) => <InputNumber min={1} value={rec.quantity} onChange={v => handleItemChange(materials, setMaterials, rec.id, 'quantity', v)} /> },

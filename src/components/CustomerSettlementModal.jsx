@@ -15,7 +15,9 @@ const CustomerSettlementModal = ({ open, customer, onClose, onSuccess }) => {
       form.setFieldsValue({
         type: customer.type,
         settlementMethod: customer.settlementMethod,
-        salesperson: customer.salesperson
+        salesperson: customer.salesperson,
+        level: customer.level,
+        region: customer.region
       });
     }
   }, [customer, form]);
@@ -73,6 +75,36 @@ const CustomerSettlementModal = ({ open, customer, onClose, onSuccess }) => {
             {employees.filter(e => e.status === '在职').map(e => (
               <Select.Option key={e.id} value={e.name}>{e.name}</Select.Option>
             ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="level"
+          label="客户等级"
+          rules={[{ required: true, message: '请选择客户等级' }]}
+        >
+          <Select placeholder="请选择客户等级">
+            <Select.Option value="S级">S级</Select.Option>
+            <Select.Option value="A级">A级</Select.Option>
+            <Select.Option value="B级">B级</Select.Option>
+            <Select.Option value="C级">C级</Select.Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="region"
+          label="客户区域"
+          rules={[{ required: true, message: '请选择客户区域' }]}
+        >
+          <Select placeholder="请选择客户区域">
+            <Select.Option value="华东">华东</Select.Option>
+            <Select.Option value="华南">华南</Select.Option>
+            <Select.Option value="华北">华北</Select.Option>
+            <Select.Option value="西南">西南</Select.Option>
+            <Select.Option value="西北">西北</Select.Option>
+            <Select.Option value="东北">东北</Select.Option>
+            <Select.Option value="华中">华中</Select.Option>
+            <Select.Option value="全国">全国</Select.Option>
           </Select>
         </Form.Item>
       </Form>
