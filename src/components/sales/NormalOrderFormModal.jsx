@@ -1791,17 +1791,19 @@ const NormalOrderFormModal = ({ open, record, initialData, onCancel, onClose, on
                     <Col span={10}>
                         <div className="bg-gray-50 p-4 rounded text-right space-y-2 border border-gray-100">
                             <div>订单总额: <Text strong>¥{totalSummaries.productTotal.toFixed(2)}</Text></div>
-                            <div>折后订单总额: <Text strong>¥{totalSummaries.discountedProductTotal.toFixed(2)}</Text></div>
-                            <div>优惠总额度: <Text type="secondary">¥{totalSummaries.totalSaving.toFixed(2)}</Text></div>
-                            <div>订单含税总额: <Text strong className="font-mono">¥{totalSummaries.taxedProductTotal.toFixed(2)}</Text></div>
-                            <div>定金应收: <Text strong type="warning">¥{totalSummaries.depositReceivable.toFixed(2)}</Text></div>
+                            <div>优惠金额: <Text type="secondary" className="text-green-600">- ¥{totalSummaries.totalSaving.toFixed(2)}</Text></div>
+                            <div>订单不含税折后总额: <Text strong>¥{totalSummaries.discountedProductTotal.toFixed(2)}</Text></div>
+                            <div>订单含税折后总额: <Text strong className="font-mono">¥{totalSummaries.taxedProductTotal.toFixed(2)}</Text></div>
                             <div className="flex justify-end items-center">
                                 <span className="mr-2">其他费用:</span>
                                 <Form.Item name="otherFee" noStyle><InputNumber precision={2} style={{ width: 120 }} onChange={() => {}} disabled={isReadonly} /></Form.Item>
                             </div>
+                            {isCollectDeposit && (
+                                <div>定金应收: <Text strong type="warning" className="text-amber-600">¥{totalSummaries.depositReceivable.toFixed(2)}</Text></div>
+                            )}
                             <Divider style={{ margin: '8px 0' }} />
                             <div className="text-2xl font-bold text-red-600">
-                                订单总额: ¥{totalSummaries.orderTotal.toFixed(2)}
+                                订单应收总额: ¥{totalSummaries.orderTotal.toFixed(2)}
                             </div>
                             <div className="flex justify-end gap-4 text-gray-500">
                                 <div>已收金额: ¥{(record?.paidAmount || 0).toFixed(2)}</div>

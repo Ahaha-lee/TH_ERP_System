@@ -341,16 +341,6 @@ const StockingPlanList = () => {
       render: (text, record) => <a onClick={() => showDetail(record)}>{text}</a>
     },
     {
-      title: '销售订单号',
-      key: 'salesOrderNo',
-      width: 150,
-      render: (_, record) => {
-        const info = getPlanInfo(record);
-        if (info.salesOrderNo === '-') return '-';
-        return <a onClick={() => navigate('/sales-orders/normal', { state: { openDetail: info.salesOrderNo } })}>{info.salesOrderNo}</a>;
-      }
-    },
-    {
       title: '客户名称',
       key: 'customerName',
       width: 180,
@@ -640,7 +630,7 @@ const StockingPlanList = () => {
                       { title: '产品名称', dataIndex: 'productName', width: 140 },
                       { title: '规格', dataIndex: 'spec', width: 120, render: v => v || '1220*2440*18mm' },
                       { title: '型号', dataIndex: 'model', width: 100, render: v => v || 'E0级' },
-                      { title: '本次发货数量', dataIndex: 'quantity', width: 110, align: 'right', render: v => <span className="font-semibold text-emerald-600">{v}</span> },
+                      { title: '本次出库数量', dataIndex: 'quantity', width: 110, align: 'right', render: v => <span className="font-semibold text-emerald-600">{v}</span> },
                       { title: '出库单号', dataIndex: 'outboundOrderNo', width: 150, render: v => v || currentRecord.outboundOrderNo || 'OUT202605250001' },
                       { title: '出库仓库', dataIndex: 'warehouse', width: 130, render: v => v || '主成品仓库' },
                       { title: '批次号', dataIndex: 'batchNo', width: 125, render: v => v || '-' },
@@ -852,7 +842,7 @@ const StockingPlanList = () => {
                     ),
                   },
                   {
-                    title: '本次发货数量',
+                    title: '本次出库数量',
                     dataIndex: 'quantity',
                     key: 'quantity',
                     width: 120,

@@ -26,7 +26,7 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
     const [items, setItems] = useState([]);
 
     const calculations = React.useMemo(() => {
-        if (!record) return { productTotal: 0, discountedTotal: 0, totalSaving: 0, taxedProductTotal: 0, orderTotal: 0, rateVal: 0.13 };
+        if (!record) return { productTotal: 0, discountedTotal: 0, totalSaving: 0, taxedProductTotal: 0, orderTotal: 0, rateVal: 0.13, isCollectDeposit: false, depositRatio: 30, depositReceivable: 0 };
         const itemsList = record.items || [];
         const productTotal = itemsList.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
         const discountedTotal = productTotal * 0.95; // 5% discount
@@ -41,13 +41,20 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
         const otherFee = record.otherFee ?? record.otherFees ?? 0;
         const orderTotal = taxedProductTotal + otherFee;
 
+        const isCollectDeposit = record.isCollectDeposit ?? false;
+        const depositRatio = record.depositRatio ?? 30;
+        const depositReceivable = isCollectDeposit ? orderTotal * (depositRatio / 100) : 0;
+
         return {
             productTotal,
             discountedTotal,
             totalSaving,
             taxedProductTotal,
             orderTotal,
-            rateVal
+            rateVal,
+            isCollectDeposit,
+            depositRatio,
+            depositReceivable
         };
     }, [record]);
 
@@ -150,14 +157,17 @@ const TrusteeAuditModal = ({ open, record, onCancel, onSuccess }) => {
                     </div>
                 )}
 
-                <div className="bg-gray-50 p-4 rounded text-right space-y-1 mt-4 border">
-                    <div>加工费总计: <Text strong>¥{calculations.productTotal.toFixed(2)}</Text></div>
-                    <div>折后加工费: <Text strong>¥{calculations.discountedTotal.toFixed(2)}</Text> (5%折扣)</div>
-                    <div>优惠总金额: <Text type="secondary">¥{calculations.totalSaving.toFixed(2)}</Text></div>
-                    <div>订单含税总额: <Text strong className="font-mono">¥{calculations.taxedProductTotal.toFixed(2)}</Text></div>
+                <div className="bg-gray-50 p-4 rounded text-right space-y-2 mt-4 border border-gray-200">
+                    <div>订单总额: <Text strong>¥{calculations.productTotal.toFixed(2)}</Text></div>
+                    <div className="text-green-600">优惠金额: <Text type="secondary" className="text-green-600 font-mono">- ¥{calculations.totalSaving.toFixed(2)}</Text></div>
+                    <div>订单不含税折后总额: <Text strong>¥{calculations.discountedTotal.toFixed(2)}</Text></div>
+                    <div>订单含税折后总额: <Text strong className="font-mono">¥{calculations.taxedProductTotal.toFixed(2)}</Text></div>
                     <div>其他费用: <Text strong>¥{(record.otherFee || record.otherFees || 0).toFixed(2)}</Text></div>
+                    {calculations.isCollectDeposit && (
+                        <div>定金应收 ({calculations.depositRatio}%): <Text strong type="warning" className="text-amber-600 font-mono">¥{calculations.depositReceivable.toFixed(2)}</Text></div>
+                    )}
                     <Divider style={{ margin: '8px 0' }} />
-                    <div className="text-xl font-bold text-red-600">订单总额: ¥{calculations.orderTotal.toFixed(2)}</div>
+                    <div className="text-xl font-bold text-red-600">订单应收总额: ¥{calculations.orderTotal.toFixed(2)}</div>
                 </div>
 
                 <Divider style={{ margin: '24px 0 16px 0' }} />

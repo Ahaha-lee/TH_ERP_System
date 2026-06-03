@@ -460,19 +460,19 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
                                 <Col span={14} className="text-gray-500 text-xs">订单总额:</Col>
                                 <Col span={10} className="text-right font-mono text-gray-700">¥{(calculations.productTotal || 0).toFixed(2)}</Col>
                             </Row>
+
+                            <Row wrap={false} align="middle">
+                                <Col span={14} className="text-gray-500 text-xs">优惠金额:</Col>
+                                <Col span={10} className="text-right font-mono text-green-600">- ¥{(calculations.totalSaving || 0).toFixed(2)}</Col>
+                            </Row>
                             
                             <Row wrap={false} align="middle">
-                                <Col span={14} className="text-gray-500 text-xs">折后金额:</Col>
+                                <Col span={14} className="text-gray-500 text-xs">订单不含税折后总额:</Col>
                                 <Col span={10} className="text-right font-mono text-gray-900 font-semibold">¥{(calculations.discountedProductTotal || 0).toFixed(2)}</Col>
                             </Row>
 
                             <Row wrap={false} align="middle">
-                                <Col span={14} className="text-gray-500 text-xs">优惠总金额:</Col>
-                                <Col span={10} className="text-right font-mono text-gray-500">¥{(calculations.totalSaving || 0).toFixed(2)}</Col>
-                            </Row>
-
-                            <Row wrap={false} align="middle">
-                                <Col span={14} className="text-gray-500 text-xs font-semibold">订单含税总额:</Col>
+                                <Col span={14} className="text-gray-500 text-xs font-semibold">订单含税折后总额:</Col>
                                 <Col span={10} className="text-right font-mono text-gray-900 font-semibold">¥{(calculations.taxedProductTotal || 0).toFixed(2)}</Col>
                             </Row>
                             
@@ -484,7 +484,7 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
                             <Divider style={{ margin: '6px 0' }} />
                             
                             <Row wrap={false} align="middle">
-                                <Col span={14} className="text-gray-800 font-semibold text-sm">订单总额:</Col>
+                                <Col span={14} className="text-gray-800 font-semibold text-sm">订单应收总额:</Col>
                                 <Col span={10} className="text-right font-mono text-red-600 font-bold text-lg">¥{(calculations.orderTotal || 0).toFixed(2)}</Col>
                             </Row>
                             

@@ -12,7 +12,7 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
     }, [record]);
 
     const calculations = useMemo(() => {
-        if (!record) return { productTotal: 0, discountedTotal: 0, totalSaving: 0, taxedProductTotal: 0, orderTotal: 0, rateVal: 0.13 };
+        if (!record) return { productTotal: 0, discountedTotal: 0, totalSaving: 0, taxedProductTotal: 0, orderTotal: 0, rateVal: 0.13, isCollectDeposit: false, depositRatio: 30, depositReceivable: 0 };
         const items = record.items || [];
         const productTotal = items.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
         const discountedTotal = productTotal * 0.95; // 5% discount
@@ -27,13 +27,20 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
         const otherFee = record.otherFee ?? record.otherFees ?? 0;
         const orderTotal = taxedProductTotal + otherFee;
 
+        const isCollectDeposit = record.isCollectDeposit ?? false;
+        const depositRatio = record.depositRatio ?? 30;
+        const depositReceivable = isCollectDeposit ? orderTotal * (depositRatio / 100) : 0;
+
         return {
             productTotal,
             discountedTotal,
             totalSaving,
             taxedProductTotal,
             orderTotal,
-            rateVal
+            rateVal,
+            isCollectDeposit,
+            depositRatio,
+            depositReceivable
         };
     }, [record]);
 
@@ -136,13 +143,18 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
 
                     <Divider titlePlacement="left">费用汇总</Divider>
                     <div className="bg-gray-50 p-4 rounded text-right space-y-2">
-                        <Row justify="end"><Col span={4}>加工费总计:</Col><Col span={4}>¥{calculations.productTotal.toFixed(2)}</Col></Row>
-                        <Row justify="end"><Col span={4}>折后加工费:</Col><Col span={4}>¥{calculations.discountedTotal.toFixed(2)}</Col></Row>
-                        <Row justify="end"><Col span={4}>优惠总金额:</Col><Col span={4}>¥{calculations.totalSaving.toFixed(2)}</Col></Row>
-                        <Row justify="end"><Col span={4} className="font-semibold text-gray-800">订单含税总额:</Col><Col span={4} className="font-semibold text-gray-800 font-mono">¥{calculations.taxedProductTotal.toFixed(2)}</Col></Row>
-                        <Row justify="end"><Col span={4}>其他费用:</Col><Col span={4}>¥{(record.otherFee || record.otherFees || 0).toFixed(2)}</Col></Row>
-                        <Row justify="end" className="text-xl font-bold text-red-600">
-                            <Col span={4}>订单总额:</Col><Col span={4}>¥{calculations.orderTotal.toFixed(2)}</Col>
+                        <Row justify="end"><Col span={6}>订单总额:</Col><Col span={4} className="font-mono text-gray-700">¥{calculations.productTotal.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={6} className="text-green-600">优惠金额:</Col><Col span={4} className="text-green-600 font-mono">- ¥{calculations.totalSaving.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={6}>订单不含税折后总额:</Col><Col span={4} className="font-semibold text-gray-900 font-mono">¥{calculations.discountedTotal.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={6}>订单含税折后总额:</Col><Col span={4} className="font-semibold text-gray-900 font-mono">¥{calculations.taxedProductTotal.toFixed(2)}</Col></Row>
+                        <Row justify="end"><Col span={6}>其他费用:</Col><Col span={4} className="font-mono text-gray-700">¥{(record.otherFee || record.otherFees || 0).toFixed(2)}</Col></Row>
+                        {calculations.isCollectDeposit && (
+                            <Row justify="end" className="text-amber-600 font-medium">
+                                <Col span={6}>定金应收 ({calculations.depositRatio}%):</Col><Col span={4} className="font-mono">¥{calculations.depositReceivable.toFixed(2)}</Col>
+                            </Row>
+                        )}
+                        <Row justify="end" className="text-xl font-bold text-red-600 border-t border-gray-200 pt-2">
+                            <Col span={6}>订单应收总额:</Col><Col span={4} className="font-mono">¥{calculations.orderTotal.toFixed(2)}</Col>
                         </Row>
                     </div>
                 </div>

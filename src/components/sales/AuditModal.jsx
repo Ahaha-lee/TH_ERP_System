@@ -191,14 +191,16 @@ const AuditModal = ({ open, record, onCancel, onSuccess, readonly }) => {
                                     <div className="bg-gray-50 p-3 rounded text-right space-y-1">
                                         <Title level={5} style={{ margin: '0 0 10px 0', textAlign: 'left' }}>价格汇总</Title>
                                         <div>订单总额: <Text strong>¥{productTotal.toFixed(2)}</Text></div>
-                                        <div>折后订单总额: <Text strong>¥{discountedProductTotal.toFixed(2)}</Text></div>
-                                        <div>优惠总额度: <Text type="secondary">¥{totalSaving.toFixed(2)}</Text></div>
-                                        <div>订单含税总额: <Text strong className="font-mono">¥{taxedProductTotal.toFixed(2)}</Text></div>
-                                        <div>定金应收: <Text strong type="warning">¥{depositReceivable.toFixed(2)}</Text></div>
+                                        <div>优惠金额: <Text type="secondary" className="text-green-600">- ¥{totalSaving.toFixed(2)}</Text></div>
+                                        <div>订单不含税折后总额: <Text strong>¥{discountedProductTotal.toFixed(2)}</Text></div>
+                                        <div>订单含税折后总额: <Text strong className="font-mono">¥{taxedProductTotal.toFixed(2)}</Text></div>
                                         <div>其他费用: <Text strong>¥{otherFee.toFixed(2)}</Text></div>
+                                        {record?.isCollectDeposit && (
+                                            <div>定金应收: <Text strong type="warning" className="text-amber-600">¥{depositReceivable.toFixed(2)}</Text></div>
+                                        )}
                                         <Divider style={{ margin: '8px 0' }} />
                                         <div className="text-xl font-bold text-red-600">
-                                            订单总额: ¥{orderTotal.toFixed(2)}
+                                            订单应收总额: ¥{orderTotal.toFixed(2)}
                                         </div>
                                     </div>
                                 </Col>

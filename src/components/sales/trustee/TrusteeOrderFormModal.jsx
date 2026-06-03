@@ -42,6 +42,8 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
 
     const taxRate = Form.useWatch('taxRate', form) ?? 13;
     const otherFee = Form.useWatch('otherFee', form) ?? 0;
+    const isCollectDeposit = Form.useWatch('isCollectDeposit', form) ?? false;
+    const depositRatio = Form.useWatch('depositRatio', form) ?? 30;
 
     useEffect(() => {
         if (open) {
@@ -51,7 +53,9 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                     urgency: record.urgency || (record.isUrgent ? '紧急' : '一般'), 
                     taxRate: record.taxRate ?? 13,
                     orderDate: dayjs(record.orderDate), 
-                    expectDeliveryDate: record.expectDeliveryDate ? dayjs(record.expectDeliveryDate) : null 
+                    expectDeliveryDate: record.expectDeliveryDate ? dayjs(record.expectDeliveryDate) : null,
+                    isCollectDeposit: record.isCollectDeposit ?? false,
+                    depositRatio: record.depositRatio ?? 30
                 });
                 setMaterials(record.materials || []);
                 setProcessingItems(record.items || []);
@@ -59,10 +63,11 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                 form.setFieldsValue({ 
                     orderNo: `ORDER-预览`, 
                     orderDate: dayjs(), 
-                    depositRate: 30, 
                     salesperson: '管理员', 
                     urgency: '一般',
-                    taxRate: 13
+                    taxRate: 13,
+                    isCollectDeposit: false,
+                    depositRatio: 30
                 });
                 setMaterials([]);
                 setProcessingItems([]);
@@ -106,14 +111,17 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
         }, 0);
         const totalSaving = productTotal - discountedTotal;
         const taxedProductTotal = discountedTotal * (1 + taxRate / 100);
+        const orderTotal = taxedProductTotal + otherFee;
+        const depositReceivable = isCollectDeposit ? orderTotal * (depositRatio / 100) : 0;
         return {
             productTotal,
             discountedTotal,
             totalSaving,
             taxedProductTotal,
-            orderTotal: taxedProductTotal + otherFee
+            orderTotal,
+            depositReceivable
         };
-    }, [processingItems, taxRate, otherFee]);
+    }, [processingItems, taxRate, otherFee, isCollectDeposit, depositRatio]);
 
     const materialColumns = [
         { 
@@ -434,7 +442,10 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                 totalAmount: totals.orderTotal, 
                 status: isSubmit ? '待审核' : '草稿', 
                 orderDate: values.orderDate.format('YYYY-MM-DD'),
-                expectDeliveryDate: values.expectDeliveryDate ? values.expectDeliveryDate.format('YYYY-MM-DD') : null
+                expectDeliveryDate: values.expectDeliveryDate ? values.expectDeliveryDate.format('YYYY-MM-DD') : null,
+                isCollectDeposit: values.isCollectDeposit,
+                depositRatio: values.depositRatio,
+                depositReceivable: totals.depositReceivable
             };
             onSuccess(data);
         });
@@ -480,6 +491,23 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                             </Select>
                         </Form.Item>
                     </Col>
+                    <Col span={6}>
+                        <Form.Item name="isCollectDeposit" label="是否收取定金" valuePropName="checked">
+                            <Switch checkedChildren="是" unCheckedChildren="否" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item name="depositRatio" label="定金比例">
+                            <InputNumber 
+                                min={0} 
+                                max={100} 
+                                formatter={v => `${v}%`} 
+                                parser={v => v.replace('%', '')} 
+                                style={{ width: '100%' }} 
+                                disabled={!isCollectDeposit}
+                            />
+                        </Form.Item>
+                    </Col>
                 </Row>
 
                 <div className="mt-4">
@@ -514,17 +542,20 @@ const TrusteeOrderFormModal = ({ open, record, onCancel, onSuccess }) => {
                         </Row>
                     </Col>
                     <Col span={10}>
-                        <div className="bg-gray-50 p-4 rounded text-right space-y-2 border">
-                            <div>加工费总额: <Text strong>¥{totals.productTotal.toFixed(2)}</Text></div>
-                            <div>折后加工费: <Text strong>¥{totals.discountedTotal.toFixed(2)}</Text> (5%折扣)</div>
-                            <div>优惠总金额: <Text type="secondary">¥{totals.totalSaving.toFixed(2)}</Text></div>
-                            <div>订单含税总额: <Text strong className="font-mono">¥{totals.taxedProductTotal.toFixed(2)}</Text></div>
+                        <div className="bg-gray-50 p-4 rounded text-right space-y-2 border border-gray-100">
+                            <div>订单总额: <Text strong>¥{totals.productTotal.toFixed(2)}</Text></div>
+                            <div>优惠金额: <Text type="secondary" className="text-green-600">- ¥{totals.totalSaving.toFixed(2)}</Text></div>
+                            <div>订单不含税折后总额: <Text strong>¥{totals.discountedTotal.toFixed(2)}</Text></div>
+                            <div>订单含税折后总额: <Text strong className="font-mono">¥{totals.taxedProductTotal.toFixed(2)}</Text></div>
                             <div className="flex justify-end items-center">
                                 <span className="mr-2">其他费用:</span>
-                                <Form.Item name="otherFee" noStyle initialValue={0}><InputNumber precision={2} /></Form.Item>
+                                <Form.Item name="otherFee" noStyle initialValue={0}><InputNumber precision={2} style={{ width: 120 }} /></Form.Item>
                             </div>
-                            <Divider />
-                            <div className="text-2xl font-bold text-red-600">订单总额: ¥{totals.orderTotal.toFixed(2)}</div>
+                            {isCollectDeposit && (
+                                <div>定金应收: <Text strong type="warning" className="text-amber-600">¥{totals.depositReceivable.toFixed(2)}</Text></div>
+                            )}
+                            <Divider style={{ margin: '8px 0' }} />
+                            <div className="text-2xl font-bold text-red-600">订单应收总额: ¥{totals.orderTotal.toFixed(2)}</div>
                         </div>
                     </Col>
                 </Row>
