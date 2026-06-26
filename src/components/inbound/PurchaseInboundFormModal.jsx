@@ -237,9 +237,9 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
   };
 
   const columns = [
-    { title: '序号', width: 60, render: (_, __, index) => index + 1 },
-    { title: '物料编码', dataIndex: 'productCode', width: 120 },
-    { title: '物料名称', dataIndex: 'productName', width: 150, ellipsis: true },
+    { title: '序号', width: 60, fixed: 'left', render: (_, __, index) => index + 1 },
+    { title: '物料编码', dataIndex: 'productCode', width: 120, fixed: 'left' },
+    { title: '物料名称', dataIndex: 'productName', width: 150, fixed: 'left', ellipsis: true },
     { title: '规格', dataIndex: 'spec', width: 120, ellipsis: true },
     { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
     { title: '单位', dataIndex: 'unit', width: 60 },
@@ -280,6 +280,7 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
       title: '操作',
       width: 150,
       align: 'center',
+      fixed: 'right',
       render: (_, record) => (
         <Space size={0}>
           <Button 
@@ -464,7 +465,7 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
         dataSource={items}
         size="small"
         pagination={false}
-        scroll={{ y: 300 }}
+        scroll={{ x: 1200, y: 300 }}
       />
 
       <PurchaseOrderSelectModal 
