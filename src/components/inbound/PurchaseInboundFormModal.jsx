@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Row, Col, Input, Select, Button, Table, Space, InputNumber, Typography, message, Upload } from 'antd';
-import { SearchOutlined, InboxOutlined } from '@ant-design/icons';
+import { SearchOutlined, InboxOutlined, PlusOutlined, DeleteOutlined, BarcodeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import PurchaseOrderSelectModal from './modals/PurchaseOrderSelectModal';
 import { warehouses } from '../../mock';
@@ -13,6 +13,12 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
   const [form] = Form.useForm();
   const [items, setItems] = useState([]);
   const [selectModalOpen, setSelectModalOpen] = useState(false);
+  
+  // Secondary adjust modal states
+  const [adjustModalVisible, setAdjustModalVisible] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [adjustTableData, setAdjustTableData] = useState([]);
+  const [scanValue, setScanValue] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -30,14 +36,33 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
           inboundDate: dayjs(initialValues.inboundDate),
           image: initialImages
         });
-        setItems(initialValues.items.map((it, idx) => ({
-          ...it,
-          id: idx,
-          orderQty: it.orderQty !== undefined ? it.orderQty : (it.quantity + (it.receivedQty || 0)),
-          receivedQty: it.receivedQty !== undefined ? it.receivedQty : 0,
-          remainQty: it.remainQty !== undefined ? it.remainQty : it.quantity,
-          model: it.model || 'M-2026'
-        }))); // Simplified for edit
+        setItems(initialValues.items.map((it, idx) => {
+          const orderQty = it.orderQty !== undefined ? it.orderQty : ((it.quantity || 0) + (it.receivedQty || 0));
+          const currentQty = it.quantity || 0;
+          const savedReceivedQty = it.receivedQty !== undefined ? it.receivedQty : 0;
+          const initialReceivedQty = Math.max(0, savedReceivedQty - currentQty);
+          const remain = orderQty - savedReceivedQty;
+          return {
+            ...it,
+            id: idx,
+            orderQty: orderQty,
+            initialReceivedQty: initialReceivedQty,
+            receivedQty: savedReceivedQty,
+            remainQty: remain,
+            quantity: currentQty,
+            model: it.model || 'M-2026',
+            adjustments: it.adjustments || [
+              {
+                key: `${idx}-adj-0`,
+                serialNo: '',
+                isProductCode: false,
+                warehouseName: it.warehouseName || (warehouses[0]?.name || ''),
+                bin: it.bin || '',
+                quantity: currentQty
+              }
+            ]
+          };
+        }));
       } else { 
         form.setFieldsValue({ 
           inboundNo: `IN-${dayjs().format("YYYYMMDD")}`,
@@ -52,27 +77,161 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
     }
   }, [open, initialValues, form]);
 
+  const handleOpenAdjustModal = (recordItem) => {
+    setSelectedItemId(recordItem.id);
+    const parentRemainQty = recordItem.orderQty - (recordItem.initialReceivedQty || 0);
+    if (recordItem.adjustments && recordItem.adjustments.length > 0) {
+      setAdjustTableData(recordItem.adjustments.map((adj, idx) => ({
+        key: adj.key || `${recordItem.id}-adj-${idx}`,
+        serialNo: adj.serialNo || '',
+        isProductCode: adj.isProductCode || false,
+        warehouseName: adj.warehouseName,
+        bin: adj.bin,
+        quantity: adj.quantity
+      })));
+    } else {
+      setAdjustTableData([
+        {
+          key: `${recordItem.id}-adj-0`,
+          serialNo: '',
+          isProductCode: false,
+          warehouseName: recordItem.warehouseName || (warehouses[0]?.name || ''),
+          bin: recordItem.bin || '',
+          quantity: 0
+        }
+      ]);
+    }
+    setAdjustModalVisible(true);
+  };
+
+  const handleAddWarehouseRow = () => {
+    const newKey = `${selectedItemId}-adj-${Date.now()}`;
+    setAdjustTableData(prev => [
+      ...prev,
+      {
+        key: newKey,
+        serialNo: '',
+        isProductCode: false,
+        warehouseName: warehouses[0]?.name || '',
+        bin: '',
+        quantity: 0
+      }
+    ]);
+  };
+
+  const handleSaveAdjust = () => {
+    const selectedItem = items.find(item => item.id === selectedItemId);
+    const parentRemainQty = selectedItem ? (selectedItem.orderQty - (selectedItem.initialReceivedQty || 0)) : 0;
+    
+    const totalAdjusted = adjustTableData.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0);
+    if (totalAdjusted > parentRemainQty) {
+      message.error(`所有实入数量之和（${totalAdjusted}）不能超过待入库数量（${parentRemainQty}）`);
+      return;
+    }
+
+    setItems(prev => prev.map(item => {
+      if (item.id === selectedItemId) {
+        const firstAdj = adjustTableData[0] || {};
+        return {
+          ...item,
+          warehouseName: firstAdj.warehouseName,
+          bin: firstAdj.bin,
+          quantity: totalAdjusted,
+          adjustments: adjustTableData
+        };
+      }
+      return item;
+    }));
+    setAdjustModalVisible(false);
+    message.success('调整仓库成功');
+  };
+
+  const handleScanAdd = (customValue) => {
+    const rawVal = typeof customValue === 'string' ? customValue : scanValue;
+    const trimmed = rawVal ? rawVal.trim() : '';
+    if (!trimmed) {
+      message.warning('请先输入或扫描序列号或产品码！');
+      return;
+    }
+    
+    // Check format error simulation
+    if (trimmed.startsWith('ERR_INVALID') || trimmed === 'INVALID_BARCODE') {
+      message.error('条码格式无效！');
+      return;
+    }
+
+    // Check mismatch simulation
+    if (trimmed.startsWith('SN-MISMATCH') || trimmed === 'SN_MISMATCH_888') {
+      message.error('该序列号对应的商品并非本次待出库商品，无法录入');
+      return;
+    }
+
+    // Check occupied simulation
+    if (trimmed.startsWith('SN-OCCUPIED') || trimmed === 'SN_OCCUPIED_999') {
+      message.error(`该序列号[${trimmed}]已存在于其他入库单中，不可入库`);
+      return;
+    }
+
+    const selectedItem = items.find(item => item.id === selectedItemId);
+    const parentRemainQty = selectedItem ? (selectedItem.orderQty - (selectedItem.initialReceivedQty || 0)) : 0;
+    const totalCurrentInbound = adjustTableData.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0);
+
+    // Check duplicate scanning
+    const exists = adjustTableData.some(item => item.serialNo === trimmed && trimmed);
+    if (exists) {
+      message.error(`该条码 [${trimmed}] 已在本次录入列表中，请勿重复扫码！`);
+      return;
+    }
+
+    // Check if total scanned would exceed the max allowed quantity
+    if (totalCurrentInbound + 1 > parentRemainQty) {
+      message.error(`❌ 扫码异常：本次入库总数已达到待入库数量上限（${parentRemainQty} 个），无法继续录入！`);
+      return;
+    }
+
+    const isProductCode = !trimmed.toUpperCase().startsWith('SN');
+    const newRow = {
+      key: `scan-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      serialNo: isProductCode ? '' : trimmed,
+      isProductCode: isProductCode,
+      warehouseName: warehouses[0]?.name || '',
+      bin: '',
+      quantity: 1
+    };
+
+    setAdjustTableData(prev => [...prev, newRow]);
+    setScanValue('');
+    message.success('录入成功');
+  };
+
   const handleSelectPurchaseOrder = (order) => {
     form.setFieldsValue({
       relOrderNo: order.orderNo,
       partnerName: order.supplierName,
     });
-    const newItems = order.items.map((it, idx) => ({
-      id: idx,
-      productCode: it.productCode,
-      productName: it.productName,
-      spec: it.spec,
-      model: it.model || (it.productCode === 'MAT001' ? 'M-Oak-20' : it.productCode === 'MAT002' ? 'M-Ply-18' : it.productCode === 'ACC001' ? 'M-Hinge-110' : 'M-2026'),
-      unit: it.unit,
-      purchasePrice: it.price,
-      price: it.price,
-      orderQty: it.quantity,
-      receivedQty: it.receivedQty || 0,
-      remainQty: it.quantity - (it.receivedQty || 0),
-      quantity: it.quantity - (it.receivedQty || 0),
-      warehouseName: '原材料仓库',
-      bin: 'R-01-01'
-    }));
+    const newItems = order.items.map((it, idx) => {
+      const orderQty = it.quantity;
+      const initialReceivedQty = it.receivedQty || 0;
+      const remain = orderQty - initialReceivedQty;
+      return {
+        id: idx,
+        productCode: it.productCode,
+        productName: it.productName,
+        spec: it.spec,
+        model: it.model || (it.productCode === 'MAT001' ? 'M-Oak-20' : it.productCode === 'MAT002' ? 'M-Ply-18' : it.productCode === 'ACC001' ? 'M-Hinge-110' : 'M-2026'),
+        unit: it.unit,
+        purchasePrice: it.price,
+        price: it.price,
+        orderQty: orderQty,
+        initialReceivedQty: initialReceivedQty,
+        receivedQty: initialReceivedQty,
+        remainQty: remain,
+        quantity: 0,
+        warehouseName: warehouses[0]?.name || '一厂成品仓',
+        bin: 'A区-01-01',
+        adjustments: []
+      };
+    });
     setItems(newItems);
     setSelectModalOpen(false);
   };
@@ -84,25 +243,32 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
     { title: '规格', dataIndex: 'spec', width: 120, ellipsis: true },
     { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
     { title: '单位', dataIndex: 'unit', width: 60 },
-    { title: '订单数量', dataIndex: 'orderQty', width: 90, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.quantity + (r.receivedQty || 0) || '-') },
-    { title: '已入库数量', dataIndex: 'receivedQty', width: 100, align: 'right', render: (v) => v !== undefined && v !== null ? v : '-' },
-    { title: '待入库数量', dataIndex: 'remainQty', width: 100, align: 'right' },
+    { title: '订单数量', dataIndex: 'orderQty', width: 90, align: 'right', render: (v, r) => r.orderQty !== undefined && r.orderQty !== null ? r.orderQty : '-' },
     { 
-      title: '本次入库', 
-      dataIndex: 'quantity', 
-      width: 100,
-      render: (val, record) => (
-        <InputNumber 
-          min={0.01} 
-          max={record.remainQty} 
-          value={val} 
-          size="small"
-          onChange={(newVal) => {
-            const nextItems = items.map(it => it.id === record.id ? { ...it, quantity: newVal } : it);
-            setItems(nextItems);
-          }}
-        />
-      )
+      title: '已入库数量', 
+      dataIndex: 'receivedQty', 
+      width: 100, 
+      align: 'right', 
+      render: (_, r) => {
+        return r.initialReceivedQty !== undefined ? r.initialReceivedQty : 0;
+      } 
+    },
+    { 
+      title: '待入库数量', 
+      dataIndex: 'remainQty', 
+      width: 100, 
+      align: 'right',
+      render: (_, r) => {
+        const prevReceived = r.initialReceivedQty !== undefined ? r.initialReceivedQty : 0;
+        return (r.orderQty || 0) - prevReceived;
+      }
+    },
+    {
+      title: '本次入库数量',
+      dataIndex: 'quantity',
+      width: 110,
+      align: 'right',
+      render: (v) => <span className="font-semibold text-blue-600">{v || 0}</span>
     },
     { 
       title: '采购单价', 
@@ -111,52 +277,27 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
       render: (val) => `¥${Number(val || 0).toFixed(2)}`
     },
     {
-      title: '入库仓库',
-      dataIndex: 'warehouseName',
-      width: 140,
-      render: (val, record) => (
-        <Select 
-          value={val} 
-          placeholder="选择仓库"
-          size="small" 
-          style={{ width: '100%' }}
-          onChange={(newVal) => {
-            const nextItems = items.map(it => it.id === record.id ? { ...it, warehouseName: newVal } : it);
-            setItems(nextItems);
-          }}
-        >
-          {warehouses.map(w => <Select.Option key={w.id} value={w.name}>{w.name}</Select.Option>)}
-        </Select>
-      )
-    },
-    {
-      title: '货位',
-      dataIndex: 'bin',
-      width: 120,
-      render: (val, record) => (
-        <Select 
-          value={val} 
-          placeholder="选择货位"
-          size="small" 
-          allowClear
-          style={{ width: '100%' }}
-          onChange={(newVal) => {
-            const nextItems = items.map(it => it.id === record.id ? { ...it, bin: newVal } : it);
-            setItems(nextItems);
-          }}
-        >
-          <Select.Option value="A-01-01">A-01-01</Select.Option>
-          <Select.Option value="A-01-02">A-01-02</Select.Option>
-          <Select.Option value="R-01-01">R-01-01</Select.Option>
-          <Select.Option value="R-01-02">R-01-02</Select.Option>
-        </Select>
-      )
-    },
-    {
       title: '操作',
-      width: 60,
+      width: 150,
+      align: 'center',
       render: (_, record) => (
-        <Button type="link" danger size="small" onClick={() => setItems(items.filter(it => it.id !== record.id))}>删除</Button>
+        <Space size={0}>
+          <Button 
+            type="link" 
+            size="small" 
+            onClick={() => handleOpenAdjustModal(record)}
+          >
+            调整仓库
+          </Button>
+          <Button 
+            type="link" 
+            danger 
+            size="small" 
+            onClick={() => setItems(items.filter(it => it.id !== record.id))}
+          >
+            删除
+          </Button>
+        </Space>
       )
     }
   ];
@@ -188,10 +329,25 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
 
       Promise.all(promises).then(imageUrls => {
         const { image, ...restValues } = values;
+        
+        // Finalize quantities of items before saving
+        const finalItems = items.map(item => {
+          const qty = item.quantity || 0;
+          const prevReceived = item.initialReceivedQty || 0;
+          const finalReceived = prevReceived + qty;
+          const finalRemain = item.orderQty - finalReceived;
+          return {
+            ...item,
+            receivedQty: finalReceived,
+            remainQty: finalRemain,
+            quantity: qty
+          };
+        });
+
         onSave({ 
           ...restValues, 
           status, 
-          items, 
+          items: finalItems, 
           images: imageUrls,
           inboundDate: values.inboundDate.format('YYYY-MM-DD') 
         });
@@ -199,7 +355,12 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
     });
   };
 
+  const selectedItem = items.find(item => item.id === selectedItemId);
+  const parentRemainQty = selectedItem ? (selectedItem.remainQty !== undefined && selectedItem.remainQty !== null ? selectedItem.remainQty : (selectedItem.orderQty - selectedItem.receivedQty)) : 0;
+  const totalAdjusted = adjustTableData.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0);
+
   return (
+    <>
     <Modal forceRender
       title={initialValues ? '编辑采购入库单' : '新增采购入库单'}
       open={open}
@@ -312,6 +473,262 @@ const PurchaseInboundFormModal = ({ open, onCancel, onSave, initialValues }) => 
         onSelect={handleSelectPurchaseOrder}
       />
     </Modal>
+
+    <Modal
+      title="调整仓库"
+      open={adjustModalVisible}
+      onCancel={() => setAdjustModalVisible(false)}
+      onOk={handleSaveAdjust}
+      width={780}
+      destroyOnHidden
+      centered
+    >
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Space size="large">
+          <span>
+            <Text strong>物料名称: </Text>
+            <Text type="secondary">
+              {selectedItem?.productName || '未选物料'}
+            </Text>
+          </span>
+          <span>
+            <Text strong>待入库数量: </Text>
+            <Text className="font-semibold text-blue-600">
+              {parentRemainQty || 0} {selectedItem?.unit || '个'}
+            </Text>
+          </span>
+          <span>
+            <Text strong>已分配总量: </Text>
+            <Text strong className={totalAdjusted > parentRemainQty ? "text-red-500" : "text-green-600"}>
+              {totalAdjusted} / {parentRemainQty || 0}
+            </Text>
+          </span>
+        </Space>
+      </div>
+
+      {/* 扫码录入部件 */}
+      <div style={{ marginBottom: 16, padding: '16px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
+        <div style={{ fontWeight: '600', marginBottom: 8, color: '#262626' }}>
+          🔍 扫码录入：
+        </div>
+        <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 8 }} wrap>
+          <Space>
+            <BarcodeOutlined style={{ fontSize: '18px', color: '#1890ff' }} />
+            <Input
+              placeholder="请输入序列号/产品码或扫描条码并回车"
+              value={scanValue}
+              onChange={(e) => setScanValue(e.target.value)}
+              onPressEnter={() => handleScanAdd()}
+              style={{ width: 240 }}
+              allowClear
+            />
+            <Button type="primary" onClick={() => handleScanAdd()}>录入</Button>
+          </Space>
+        </Space>
+
+        <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 8, marginTop: 4 }}>
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#8c8c8c', marginBottom: 4 }}>
+            💡 模拟扫码测试工具箱（快捷触发扫码及各种异常检测）：
+          </div>
+          <Space wrap size="small">
+            <Button 
+              size="small" 
+              onClick={() => handleScanAdd(`SN-2026-06${Math.floor(Math.random() * 9000 + 1000)}`)}
+              style={{ color: '#2f54eb', borderColor: '#adc6ff', background: '#f0f5ff', fontSize: '11px' }}
+            >
+              🟢 扫码序列号
+            </Button>
+            <Button 
+              size="small" 
+              onClick={() => handleScanAdd(`PROD-MAT-${Math.floor(Math.random() * 900 + 100)}`)}
+              style={{ color: '#096dd9', borderColor: '#91d5ff', background: '#e6f7ff', fontSize: '11px' }}
+            >
+              🔵 扫码产品码 (可改仓库/数量)
+            </Button>
+            <Button 
+              size="small" 
+              onClick={() => {
+                if (adjustTableData.length > 0 && adjustTableData.some(i => i.serialNo)) {
+                  const firstScanned = adjustTableData.find(i => i.serialNo);
+                  handleScanAdd(firstScanned.serialNo);
+                } else {
+                  const dummy = 'SN-2026-069999';
+                  handleScanAdd(dummy);
+                  setTimeout(() => handleScanAdd(dummy), 300);
+                }
+              }}
+              style={{ color: '#fa8c16', borderColor: '#ffd591', background: '#fff7e6', fontSize: '11px' }}
+            >
+              ⚠️ 重复扫码
+            </Button>
+            <Button 
+              size="small" 
+              onClick={() => handleScanAdd('ERR_INVALID_CODE')}
+              style={{ color: '#f5222d', borderColor: '#ffa39e', background: '#fff1f0', fontSize: '11px' }}
+            >
+              ❌ 格式错误
+            </Button>
+            <Button 
+              size="small" 
+              onClick={() => handleScanAdd('SN-OCCUPIED_999')}
+              style={{ color: '#f5222d', borderColor: '#ffa39e', background: '#fff1f0', fontSize: '11px' }}
+            >
+              ❌ 被占用
+            </Button>
+            <Button 
+              size="small" 
+              onClick={() => handleScanAdd('SN-MISMATCH_888')}
+              style={{ color: '#f5222d', borderColor: '#ffa39e', background: '#fff1f0', fontSize: '11px' }}
+            >
+              ❌ 商品不匹配
+            </Button>
+          </Space>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />}
+          onClick={handleAddWarehouseRow}
+        >
+          添加仓库分配
+        </Button>
+      </div>
+
+      <Table
+        dataSource={adjustTableData}
+        pagination={false}
+        size="small"
+        bordered
+        rowKey="key"
+        columns={[
+          {
+            title: '序号',
+            key: 'index',
+            width: 60,
+            render: (_, __, idx) => idx + 1
+          },
+          {
+            title: '序列号',
+            dataIndex: 'serialNo',
+            key: 'serialNo',
+            width: 160,
+            render: (value, recordItem) => {
+              if (value) {
+                if (recordItem.isProductCode) {
+                  return null;
+                }
+                return <Text copyable className="font-mono">{value}</Text>;
+              }
+              return <Text type="secondary">-</Text>;
+            }
+          },
+          {
+            title: '仓库',
+            dataIndex: 'warehouseName',
+            key: 'warehouseName',
+            width: 180,
+            render: (text, recordItem) => (
+              <Select
+                placeholder="请选择仓库"
+                value={text}
+                style={{ width: '100%' }}
+                onChange={(val) => {
+                  const newData = adjustTableData.map(item => {
+                    if (item.key === recordItem.key) {
+                      return { ...item, warehouseName: val, bin: undefined };
+                    }
+                    return item;
+                  });
+                  setAdjustTableData(newData);
+                }}
+              >
+                {warehouses.map(wh => (
+                  <Select.Option key={wh.id} value={wh.name}>{wh.name}</Select.Option>
+                ))}
+              </Select>
+            )
+          },
+          {
+            title: '货位',
+            dataIndex: 'bin',
+            key: 'bin',
+            width: 180,
+            render: (text, recordItem) => {
+              const wh = warehouses.find(h => h.name === recordItem.warehouseName);
+              const bins = wh ? (wh.locations || []) : [];
+              return (
+                <Select
+                  placeholder="请选择货位"
+                  value={text}
+                  style={{ width: '100%' }}
+                  disabled={!recordItem.warehouseName}
+                  onChange={(val) => {
+                    const newData = adjustTableData.map(item => {
+                      if (item.key === recordItem.key) {
+                        return { ...item, bin: val };
+                      }
+                      return item;
+                    });
+                    setAdjustTableData(newData);
+                  }}
+                >
+                  {bins.map(loc => (
+                    <Select.Option key={loc.id} value={loc.name}>{loc.name}</Select.Option>
+                  ))}
+                </Select>
+              );
+            }
+          },
+          {
+            title: '实入数量',
+            dataIndex: 'quantity',
+            key: 'quantity',
+            width: 110,
+            align: 'right',
+            render: (val, recordItem) => {
+              if (recordItem.serialNo && !recordItem.isProductCode) {
+                return <Text strong className="text-green-600">1</Text>;
+              }
+              return (
+                <InputNumber
+                  min={0}
+                  value={val}
+                  style={{ width: '100%' }}
+                  onChange={(v) => {
+                    const newData = adjustTableData.map(item => {
+                      if (item.key === recordItem.key) {
+                        return { ...item, quantity: v || 0 };
+                      }
+                      return item;
+                    });
+                    setAdjustTableData(newData);
+                  }}
+                />
+              );
+            }
+          },
+          {
+            title: '操作',
+            key: 'action',
+            width: 70,
+            align: 'center',
+            render: (_, recordItem) => (
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => {
+                  setAdjustTableData(prev => prev.filter(item => item.key !== recordItem.key));
+                }}
+              />
+            )
+          }
+        ]}
+      />
+    </Modal>
+    </>
   );
 };
 

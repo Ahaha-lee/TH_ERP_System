@@ -1,16 +1,51 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Drawer, Tabs, Descriptions, Table, Tag, Divider, Typography } from 'antd';
 import { formatCurrency } from '../../utils/helpers';
 import dayjs from 'dayjs';
+import { useMockData } from '../../mock';
+import NormalOrderDetailDrawer from './NormalOrderDetailDrawer';
 
-const { Text, Title } = Typography;
+const { Text, Title, Link } = Typography;
 
 const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
+    const [normalOrders] = useMockData('normalOrders');
+    const [orderDetailOpen, setOrderDetailOpen] = useState(false);
+    const [activeOrder, setActiveOrder] = useState(null);
+
+    const handleViewOrder = (orderNo) => {
+        if (!orderNo || orderNo === '-') return;
+        const found = (normalOrders || []).find(o => o.orderNo === orderNo);
+        if (found) {
+            setActiveOrder(found);
+            setOrderDetailOpen(true);
+        } else {
+            setActiveOrder({
+                id: 'temp-' + orderNo,
+                orderNo: orderNo,
+                orderDate: notice ? notice.createdAt : dayjs().format('YYYY-MM-DD'),
+                salesperson: notice ? notice.salesperson : '业务员',
+                customerName: notice ? notice.customerName : '关联客户',
+                status: '已审核',
+                totalAmount: notice ? notice.totalAmount : 0,
+                items: notice ? notice.items : []
+            });
+            setOrderDetailOpen(true);
+        }
+    };
+
     if (!notice) return null;
 
     const basicItems = [
         { label: '发货通知单号', children: notice.noticeNo },
+        { 
+            label: '销售订单号', 
+            children: notice.orderNo ? (
+                <Link onClick={() => handleViewOrder(notice.orderNo)}>
+                    {notice.orderNo}
+                </Link>
+            ) : '-' 
+        },
         { label: '业务员', children: notice.salesperson },
         { 
             label: '状态', 
@@ -26,11 +61,23 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
         },
         { label: '创建时间', children: notice.createdAt },
         { label: '总金额', children: <Text type="danger" strong>{formatCurrency(notice.totalAmount)}</Text> },
-        { label: '备注', children: notice.remark || '-' },
+        { label: '备注', children: notice.remark || '-', span: 3 },
     ];
 
     const productColumns = [
-        { title: '销售订单号', dataIndex: 'sourceOrderNo', render: (v, rec) => v || notice.orderNo || '-' },
+        { 
+            title: '销售订单号', 
+            dataIndex: 'sourceOrderNo', 
+            render: (v, rec) => {
+                const orderNo = v || notice.orderNo;
+                if (!orderNo || orderNo === '-') return '-';
+                return (
+                    <Link onClick={() => handleViewOrder(orderNo)}>
+                        {orderNo}
+                    </Link>
+                );
+            }
+        },
         { 
             title: '客户名称（编码/名称）', 
             dataIndex: 'customerName', 
@@ -177,6 +224,11 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
                     )
                 }
             ]} />
+            <NormalOrderDetailDrawer 
+                open={orderDetailOpen}
+                order={activeOrder}
+                onClose={() => { setOrderDetailOpen(false); setActiveOrder(null); }}
+            />
         </Drawer>
     );
 };

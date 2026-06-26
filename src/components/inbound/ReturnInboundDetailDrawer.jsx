@@ -19,6 +19,12 @@ const ReturnInboundDetailDrawer = ({ open, onClose, orderNo }) => {
     { title: '物料名称', dataIndex: 'productName', width: 150 },
     { title: '规格', dataIndex: 'spec', width: 120 },
     { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
+    { 
+      title: '序列号', 
+      dataIndex: 'serialNo', 
+      width: 150, 
+      render: (v) => v ? <Text copyable style={{ fontFamily: 'monospace' }}>{v}</Text> : '-' 
+    },
     { title: '单位', dataIndex: 'unit', width: 60 },
     { title: '退货数量', dataIndex: 'quantity', width: 100, align: 'right' },
     { title: '批次号', dataIndex: 'batchNo', width: 150, render: (val) => val || order?.batchNo || 'B20260510001' },
@@ -103,7 +109,7 @@ const ReturnInboundDetailDrawer = ({ open, onClose, orderNo }) => {
           let totalQty = pageData.reduce((s, it) => s + (it.quantity || 0), 0);
           return (
             <Table.Summary.Row key="total">
-              <Table.Summary.Cell index={0} colSpan={5}>合计</Table.Summary.Cell>
+              <Table.Summary.Cell index={0} colSpan={7}>合计</Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right"><Text strong>{totalQty}</Text></Table.Summary.Cell>
               <Table.Summary.Cell index={2} colSpan={3}></Table.Summary.Cell>
             </Table.Summary.Row>

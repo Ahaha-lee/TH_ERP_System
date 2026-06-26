@@ -35,32 +35,6 @@ const initialState = {
       operationTime: '2025-05-19 11:00:00'
     },
     {
-      id: 'sp3',
-      planNo: 'SP20250519003',
-      relOrderNo: 'DN20250501001',
-      outboundOrderNo: '',
-      outboundType: '销售出库',
-      productInfo: '极简书架',
-      status: '待关闭审核',
-      operator: '管理员',
-      operationTime: '2025-05-19 14:00:00',
-      prevStatus: '未确认',
-      closeReason: '客户申请取消订单',
-      closeRemark: '客户由于交货周期调整，紧急致电要求取消该批极简书架的发货备货计划，后续可能会重新下单。',
-      closePriority: '紧急',
-      closeApplicant: '李仓库员',
-      closeApplyTime: '2026-05-25 09:12:00',
-      closeApprovalLog: [
-        {
-          action: '提交关闭申请',
-          operator: '李仓库员',
-          time: '2026-05-25 09:12:00',
-          remark: '客户由于交货周期调整，紧急致电要求取消该批极简书架的发货备货计划，后续可能会重新下单。',
-          reason: '客户申请取消订单'
-        }
-      ]
-    },
-    {
       id: 'sp4',
       planNo: 'SP20250519004',
       relOrderNo: 'REQ20250510002',

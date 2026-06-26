@@ -56,6 +56,7 @@ const QuotationAuditModal = ({ open, onCancel, onConfirm, quotation }) => {
     { title: '产品名称', dataIndex: 'productName', width: 160 },
     { title: '规格', dataIndex: 'spec', width: 110, ellipsis: true },
     { title: '型号', dataIndex: 'model', width: 90, ellipsis: true },
+    { title: '单位', dataIndex: 'unit', width: 70, align: 'center', render: (v) => v || '个' },
     { 
       title: '产品类型', 
       dataIndex: 'category', 
@@ -145,6 +146,7 @@ const QuotationAuditModal = ({ open, onCancel, onConfirm, quotation }) => {
     { title: '定制品名称', dataIndex: 'productName', width: 160 },
     { title: '规格', dataIndex: 'spec', width: 110, ellipsis: true },
     { title: '型号', dataIndex: 'model', width: 90, ellipsis: true },
+    { title: '单位', dataIndex: 'unit', width: 70, align: 'center', render: (v) => v || '个' },
     { 
       title: '产品类型', 
       dataIndex: 'category', 
@@ -277,6 +279,9 @@ const QuotationAuditModal = ({ open, onCancel, onConfirm, quotation }) => {
           <Descriptions.Item label="报价单号">{quotation.quotationNo}</Descriptions.Item>
           <Descriptions.Item label="报价日期">{quotation.quotationDate}</Descriptions.Item>
           <Descriptions.Item label="业务员">{quotation.salesperson}</Descriptions.Item>
+          <Descriptions.Item label="报价有效期" span={3}>
+            {quotation.validityRange ? `${quotation.validityRange[0]} 至 ${quotation.validityRange[1]}` : '-'}
+          </Descriptions.Item>
           <Descriptions.Item label="客户名称" span={2}>{quotation.customerName}</Descriptions.Item>
           <Descriptions.Item label="客户类型">{quotation.customerType || '-'}</Descriptions.Item>
           <Descriptions.Item label="来源预估单号">{quotation.sourceEstimationNo || '-'}</Descriptions.Item>

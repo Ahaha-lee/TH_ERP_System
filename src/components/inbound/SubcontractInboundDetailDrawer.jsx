@@ -20,6 +20,12 @@ const SubcontractInboundDetailDrawer = ({ open, onClose, orderNo }) => {
     { title: '物料名称', dataIndex: 'productName', width: 150 },
     { title: '规格', dataIndex: 'spec', width: 120 },
     { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
+    { 
+      title: '序列号', 
+      dataIndex: 'serialNo', 
+      width: 150, 
+      render: (v) => v ? <Text copyable style={{ fontFamily: 'monospace' }}>{v}</Text> : '-' 
+    },
     { title: '单位', dataIndex: 'unit', width: 60 },
     { title: '加工费', dataIndex: 'price', width: 100, align: 'right', render: (val) => formatCurrency(val) },
     { title: '委外数量', dataIndex: 'orderQty', width: 100, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.processQty !== undefined ? r.processQty : (r.quantity + (r.receivedQty || r.finishedQty || 0))) },

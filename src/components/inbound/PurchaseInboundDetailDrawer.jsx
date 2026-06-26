@@ -20,6 +20,12 @@ const PurchaseInboundDetailDrawer = ({ open, onClose, orderNo }) => {
     { title: '物料名称', dataIndex: 'productName', width: 150 },
     { title: '规格', dataIndex: 'spec', width: 120 },
     { title: '型号', dataIndex: 'model', width: 110, render: (v) => v || '-' },
+    { 
+      title: '序列号', 
+      dataIndex: 'serialNo', 
+      width: 150, 
+      render: (v) => v ? <Text copyable style={{ fontFamily: 'monospace' }}>{v}</Text> : '-' 
+    },
     { title: '单位', dataIndex: 'unit', width: 60 },
     { title: '采购单价', dataIndex: 'price', width: 100, align: 'right', render: (val) => formatCurrency(val) },
     { title: '订单数量', dataIndex: 'orderQty', width: 90, align: 'right', render: (v, r) => v !== undefined && v !== null ? v : (r.quantity + (r.receivedQty || 0) || '-') },
@@ -119,7 +125,7 @@ const PurchaseInboundDetailDrawer = ({ open, onClose, orderNo }) => {
           });
           return (
             <Table.Summary.Row key="total">
-              <Table.Summary.Cell index={0} colSpan={10}>合计</Table.Summary.Cell>
+              <Table.Summary.Cell index={0} colSpan={11}>合计</Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right"><Text strong>{totalQty}</Text></Table.Summary.Cell>
               <Table.Summary.Cell index={2} colSpan={2}></Table.Summary.Cell>
               <Table.Summary.Cell index={3} align="right"><Text strong type="danger">{formatCurrency(totalAmount)}</Text></Table.Summary.Cell>

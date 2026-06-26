@@ -168,7 +168,8 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
           depositRate: (editingRecord.depositRate || 0.3) * 100,
           isDeposit: !!editingRecord.isDeposit,
           expectedDeliveryDate: editingRecord.expectedDeliveryDate ? dayjs(editingRecord.expectedDeliveryDate) : null,
-          taxRate: editingRecord.taxRate ?? '13%'
+          taxRate: editingRecord.taxRate ?? '13%',
+          validityRange: editingRecord.validityRange ? [dayjs(editingRecord.validityRange[0]), dayjs(editingRecord.validityRange[1])] : null
         });
 
         const activeCustomer = {
@@ -209,6 +210,7 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
             spec: item.spec || prObj.spec || '',
             model: item.model || prObj.category || 'M-2026',
             category: item.category || prObj.category || '成品',
+            unit: item.unit || prObj.unit || '个',
             stockQty: totalStock,
             availableQty: availableQty,
             standardPrice,
@@ -236,7 +238,8 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
           depositRate: 30,
           isDeposit: false,
           expectedDeliveryDate: null,
-          taxRate: '13%'
+          taxRate: '13%',
+          validityRange: null
         });
         setSelectedCustomer(null);
         setItems([]);
@@ -664,6 +667,7 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
         spec: descSpec,
         model: wizardSelectedBaseProduct.category || 'M-2026-LS',
         category: '定制成品',
+        unit: wizardSelectedBaseProduct.unit || '个',
         stockQty: totalStock,
         availableQty: availableQty,
         standardPrice: finalStandardPrice,
@@ -691,6 +695,7 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
             spec: descSpec,
             model: wizardSelectedBaseProduct.category || 'M-2026-LS',
             category: '定制成品',
+            unit: wizardSelectedBaseProduct.unit || '个',
             stockQty: totalStock,
             availableQty: availableQty,
             standardPrice: finalStandardPrice,
@@ -737,6 +742,7 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
               spec: product.spec,
               model: product.category || 'M-2026',
               category: product.category || '成品',
+              unit: product.unit || '个',
               standardPrice: product.price || 0,
               marketPrice: product.price ? product.price * 1.2 : 0,
               floorPrice: product.price ? product.price * 0.8 : 0,
@@ -809,7 +815,11 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
         depositRate: values.isDeposit ? (values.depositRate / 100) : 0,
         status: isSubmit ? '待审批' : '草稿',
         quotationDate: values.quotationDate.format('YYYY-MM-DD'),
-        expectedDeliveryDate: values.expectedDeliveryDate ? values.expectedDeliveryDate.format('YYYY-MM-DD') : null
+        expectedDeliveryDate: values.expectedDeliveryDate ? values.expectedDeliveryDate.format('YYYY-MM-DD') : null,
+        validityRange: values.validityRange ? [
+          values.validityRange[0].format('YYYY-MM-DD'),
+          values.validityRange[1].format('YYYY-MM-DD')
+        ] : null
       };
       
       onSave(quotationData);
@@ -895,6 +905,13 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
       width: 100, 
       ellipsis: true,
       render: (text) => <span className="text-gray-600 text-xs">{text || '-'}</span>
+    },
+    { 
+      title: '单位', 
+      dataIndex: 'unit', 
+      width: 70, 
+      align: 'center',
+      render: (text) => <span className="text-gray-600">{text || '个'}</span>
     },
     { 
       title: '产品类型', 
@@ -1119,6 +1136,19 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
           placeholder="定制型号" 
           value={record.model || ''} 
           onChange={(e) => handleItemChange(record.id, 'model', e.target.value)} 
+          style={{ fontSize: '11px' }}
+          disabled={!!record.productCode}
+        />
+      )
+    },
+    { 
+      title: '单位', 
+      width: 80, 
+      render: (_, record) => (
+        <Input 
+          placeholder="单位" 
+          value={record.unit || '个'} 
+          onChange={(e) => handleItemChange(record.id, 'unit', e.target.value)} 
           style={{ fontSize: '11px' }}
           disabled={!!record.productCode}
         />
@@ -1478,6 +1508,11 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
               <TextArea rows={1} placeholder="支付约定" maxLength={200} />
             </Form.Item>
           </Col>
+          <Col span={12}>
+            <Form.Item name="validityRange" label="报价有效期">
+              <DatePicker.RangePicker style={{ width: '100%' }} placeholder={['生效日期', '截止日期']} />
+            </Form.Item>
+          </Col>
           <Col span={24}>
             <Form.Item name="remark" label="备注">
               <TextArea rows={1} placeholder="内部说明" maxLength={250} />
@@ -1642,6 +1677,7 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
                  spec: item.spec || prObj.spec || '',
                  model: prObj.category || 'M-2026',
                  category: prObj.category || '成品',
+                  unit: item.unit || prObj.unit || '个',
                  stockQty: prObj.stock || 0,
                  availableQty: (prObj.stock || 0) - (prObj.occupiedQty || 0),
                  standardPrice,

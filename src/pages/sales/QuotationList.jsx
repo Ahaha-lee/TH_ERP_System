@@ -14,7 +14,8 @@ import {
   FileTextOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  ExportOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useMockData, mockData } from '../../mock/data';
@@ -133,6 +134,68 @@ const QuotationList = () => {
     '已转订单': <Tag color="blue">已转订单</Tag>
   };
 
+  const handleExport = (record) => {
+    const hideMessage = message.loading(`正在导出报价单 [${record.quotationNo}] 的数据...`, 0);
+    setTimeout(() => {
+      hideMessage();
+      
+      const valRangeText = record.validityRange 
+        ? `${record.validityRange[0]} 至 ${record.validityRange[1]}` 
+        : '-';
+
+      const csvRows = [
+        ['销售报价单数据导出成果'],
+        [],
+        ['报价单号', record.quotationNo],
+        ['标题/说明', record.title || '-'],
+        ['客户名称', record.customerName || '-'],
+        ['业务员', record.salesperson || '-'],
+        ['报价日期', record.quotationDate || '-'],
+        ['有效期范围', valRangeText],
+        ['预计交期', record.expectedDeliveryDate || '-'],
+        ['报价总额', `¥${(record.totalAmount || 0).toFixed(2)}`],
+        ['税率', record.taxRate ?? '13%'],
+        ['收取定金', record.isDeposit ? `是 (比例: ${((record.depositRate || 0) * 100).toFixed(0)}%)` : '否'],
+        ['状态', record.status || '-'],
+        [],
+        ['序号', '产品编码', '产品名称', '规格', '型号', '定制品', '单位', '数量', '标准单价', '折后单价', '金额（不含税）', '备注']
+      ];
+
+      const items = record.items || [];
+      items.forEach((item, idx) => {
+        const standardPrice = item.price ?? item.standardPrice ?? item.finalPrice ?? 0;
+        const finalPrice = item.finalPrice ?? item.price ?? 0;
+        const amountExclTax = item.amount ?? (finalPrice * (item.quantity ?? 1));
+        csvRows.push([
+          idx + 1,
+          item.productCode || '-',
+          item.productName || '-',
+          item.spec || '-',
+          item.model || '-',
+          item.isCustom ? '是' : '否',
+          item.unit || '个',
+          item.quantity ?? 1,
+          `¥${standardPrice.toFixed(2)}`,
+          `¥${finalPrice.toFixed(2)}`,
+          `¥${amountExclTax.toFixed(2)}`,
+          item.remark || '-'
+        ]);
+      });
+
+      const csvContent = "\uFEFF" + csvRows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `报价单_${record.quotationNo}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      message.success(`报价单 [${record.quotationNo}] 导出成功！`);
+    }, 800);
+  };
+
   const columns = [
     { title: '序号', width: 60, render: (_, __, i) => i + 1 },
     {
@@ -176,7 +239,7 @@ const QuotationList = () => {
       title: '操作',
       key: 'action',
       fixed: 'right',
-      width: 180,
+      width: 240,
       render: (_, record) => {
         const { status, id, auditResult } = record;
         const actions = [];
@@ -193,6 +256,16 @@ const QuotationList = () => {
         if (status === '已审核' && auditResult !== '审核拒绝') {
           actions.push(<Button type="link" size="small" icon={<SwapOutlined />} onClick={() => handleConvertToOrder(record)}>转订单</Button>);
         }
+        actions.push(
+          <Button 
+            type="link" 
+            size="small" 
+            icon={<ExportOutlined />} 
+            onClick={() => handleExport(record)}
+          >
+            导出
+          </Button>
+        );
         return <Space size={0}>{actions}</Space>;
       }
     }

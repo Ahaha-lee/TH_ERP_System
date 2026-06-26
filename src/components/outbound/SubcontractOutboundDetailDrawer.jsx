@@ -34,6 +34,7 @@ const SubcontractOutboundDetailDrawer = ({ open, onClose, orderId }) => {
     { title: '本次出库数量', dataIndex: 'outboundQty', align: 'right', width: 120, render: (v, r) => v !== undefined && v !== null ? v : (r.quantity || '-') },
     { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
     { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '序列号', dataIndex: 'serialNo', width: 150, render: (v, r, i) => v || `SN-SC-${(r.productCode || 'PROD').slice(-4)}-${String(i + 1).padStart(3, '0')}` },
     { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || order.location || '-' },
     { title: '备注', dataIndex: 'remark', width: 150, render: (v) => v || '-' },
   ];
@@ -73,13 +74,13 @@ const SubcontractOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         <Descriptions.Item label="备注" span={2}>{order.remark || '-'}</Descriptions.Item>
       </Descriptions>
 
-      <Divider titlePlacement="left">发料物料明细</Divider>
+      <Divider titlePlacement="left">发料明细</Divider>
       <Table 
         dataSource={order.items || []} 
         columns={columns} 
         pagination={false} 
         rowKey="productCode" 
-        scroll={{ x: 1000 }}
+        scroll={{ x: 1200 }}
       />
     </>
   );

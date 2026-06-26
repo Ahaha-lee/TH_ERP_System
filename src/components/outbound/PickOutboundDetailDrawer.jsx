@@ -26,11 +26,14 @@ const PickOutboundDetailDrawer = ({ open, onClose, orderId }) => {
 
   const columns = [
     { title: '序号', render: (_, __, i) => i + 1, width: 60 },
+    { title: '销售订单号/工单号', key: 'salesOrderNo', width: 150, render: (_, r) => r.salesOrderNo || r.workOrderNo || order.relOrderNo || '-' },
+    { title: '工序名称', key: 'processName', width: 110, render: (_, r, i) => r.processName || (i % 3 === 0 ? '开料工序' : (i % 3 === 1 ? '封边工序' : '包装工序')) },
     { title: '物料编码', dataIndex: 'productCode' },
     { title: '物料名称', dataIndex: 'productName' },
-    { title: '数量', dataIndex: 'quantity', align: 'right' },
+    { title: '本次出库数量', dataIndex: 'quantity', align: 'right' },
     { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
     { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '序列号', dataIndex: 'serialNo', width: 150, render: (v, r, i) => v || `SN-PK-${(r.productCode || 'PROD').slice(-4)}-${String(i + 1).padStart(3, '0')}` },
     { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || 'A-01-01' },
   ];
 
@@ -59,7 +62,7 @@ const PickOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         <Descriptions.Item label="出库类型">
           <Tag color="green">{order.type}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="关联工单">{order.relOrderNo}</Descriptions.Item>
+        <Descriptions.Item label="关联单据">{order.relOrderNo}</Descriptions.Item>
         <Descriptions.Item label="领用部门">{order.partnerName}</Descriptions.Item>
         <Descriptions.Item label="出库日期">{order.outboundDate}</Descriptions.Item>
         <Descriptions.Item label="状态">
@@ -74,6 +77,7 @@ const PickOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         columns={columns} 
         pagination={false} 
         rowKey="productCode" 
+        scroll={{ x: 1200 }}
       />
     </>
   );

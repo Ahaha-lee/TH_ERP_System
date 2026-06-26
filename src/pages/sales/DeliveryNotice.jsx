@@ -27,11 +27,13 @@ import DeliveryNoticeDetailDrawer from '../../components/sales/DeliveryNoticeDet
 import AuditDetailDrawer from '../../components/sales/AuditDetailDrawer';
 import FinanceAuditModal from '../../components/sales/FinanceAuditModal';
 import WarehouseAuditModal from '../../components/sales/WarehouseAuditModal';
+import NormalOrderDetailDrawer from '../../components/sales/NormalOrderDetailDrawer';
 
 const { Link, Text } = Typography;
 
 const DeliveryNotice = () => {
   const [dataSource, setDataSource] = useMockData('deliveryNotices');
+  const [normalOrders] = useMockData('normalOrders');
   const [loading, setLoading] = useState(false);
   const [formModal, setFormModal] = useState({ open: false, data: null });
   const [detailDrawer, setDetailDrawer] = useState({ open: false, data: null });
@@ -39,6 +41,9 @@ const DeliveryNotice = () => {
   const [financeAuditOpen, setFinanceAuditOpen] = useState(false);
   const [warehouseAuditOpen, setWarehouseAuditOpen] = useState(false);
   const [activeRecord, setActiveRecord] = useState(null);
+  
+  const [orderDrawerOpen, setOrderDrawerOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const columns = [
     { title: '序号', render: (_, __, index) => index + 1, width: 60, fixed: 'left' },
@@ -59,7 +64,31 @@ const DeliveryNotice = () => {
       title: '销售订单号', 
       dataIndex: 'orderNo', 
       width: 160,
-      render: (text) => <Link onClick={() => message.info(`跳转到销售订单: ${text}`)}>{text}</Link>
+      render: (text) => (
+        <Link 
+          onClick={() => {
+            const found = (normalOrders || []).find(o => o.orderNo === text);
+            if (found) {
+              setSelectedOrder(found);
+              setOrderDrawerOpen(true);
+            } else {
+              setSelectedOrder({
+                id: 'temp-' + text,
+                orderNo: text,
+                orderDate: '2026-05-22',
+                salesperson: '业务员',
+                customerName: '关联客户',
+                status: '已审核',
+                totalAmount: 0,
+                items: []
+              });
+              setOrderDrawerOpen(true);
+            }
+          }}
+        >
+          {text}
+        </Link>
+      )
     },
     { title: '客户名称', dataIndex: 'customerName', width: 180, ellipsis: true },
     { 
@@ -117,6 +146,7 @@ const DeliveryNotice = () => {
           const { status, settlementMethod, auditResult } = record;
           return (
             <Space size="small">
+              <Button type="link" size="small" onClick={() => setDetailDrawer({ open: true, data: record })}>查看</Button>
               {(status === '草稿' || (status.includes('待') && (auditResult === '审核拒绝' || auditResult === '审批拒绝'))) && (
                 <>
                   <Button type="link" size="small" onClick={() => setFormModal({ open: true, data: record })}>编辑</Button>
@@ -267,6 +297,12 @@ const DeliveryNotice = () => {
         open={detailDrawer.open} 
         notice={detailDrawer.data}
         onClose={() => setDetailDrawer({ open: false, data: null })}
+      />
+
+      <NormalOrderDetailDrawer 
+        open={orderDrawerOpen}
+        order={selectedOrder}
+        onClose={() => { setOrderDrawerOpen(false); setSelectedOrder(null); }}
       />
 
       <AuditDetailDrawer 

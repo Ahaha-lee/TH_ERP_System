@@ -26,13 +26,16 @@ const SalesOutboundDetailDrawer = ({ open, onClose, orderId }) => {
 
   const columns = [
     { title: '序号', render: (_, __, i) => i + 1, width: 60 },
+    { title: '销售订单号/工单号', key: 'salesOrderNo', width: 150, render: (_, r) => r.salesOrderNo || r.workOrderNo || order.relOrderNo || '-' },
+    { title: '工序名称', key: 'processName', width: 110, render: (_, r, i) => r.processName || (i % 3 === 0 ? '开料工序' : (i % 3 === 1 ? '封边工序' : '包装工序')) },
     { title: '物料编码', dataIndex: 'productCode' },
     { title: '物料名称', dataIndex: 'productName' },
-    { title: '数量', dataIndex: 'quantity', align: 'right' },
-    { title: '单价', dataIndex: 'price', align: 'right', render: (v) => `￥${(v || 0).toFixed(2)}` },
-    { title: '金额', key: 'amount', align: 'right', render: (_, r) => `￥${((r.quantity || 0) * (r.price || 0)).toFixed(2)}` },
+    { title: '本次出库数量', dataIndex: 'quantity', align: 'right' },
+    { title: '单价', dataIndex: 'price', align: 'right', render: (v) => `￥${Number(v || 0).toFixed(2)}` },
+    { title: '金额', key: 'amount', align: 'right', render: (_, r) => `￥${(Number(r.quantity || 0) * Number(r.price || 0)).toFixed(2)}` },
     { title: '出库仓库', dataIndex: 'warehouseName', width: 150, render: (v) => v || order.warehouseName || '-' },
     { title: '批次号', dataIndex: 'batchNo', width: 150, render: (v) => v || order.batchNo || 'B20250425PD001' },
+    { title: '序列号', dataIndex: 'serialNo', width: 150, render: (v, r, i) => v || `SN-SL-${(r.productCode || 'PROD').slice(-4)}-${String(i + 1).padStart(3, '0')}` },
     { title: '货位', dataIndex: 'bin', width: 100, render: (v) => v || order.bin || 'A-01-01' },
   ];
 
@@ -62,9 +65,8 @@ const SalesOutboundDetailDrawer = ({ open, onClose, orderId }) => {
           <Tag color="blue">{order.type}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label="关联单号">{order.relOrderNo}</Descriptions.Item>
-        <Descriptions.Item label="客户">{order.partnerName}</Descriptions.Item>
         <Descriptions.Item label="出库日期">{order.outboundDate}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label="状态" span={2}>
           <Tag color={order.status === '已出库' ? 'success' : 'processing'}>{order.status}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label="备注" span={3}>{order.remark || '-'}</Descriptions.Item>
@@ -76,12 +78,12 @@ const SalesOutboundDetailDrawer = ({ open, onClose, orderId }) => {
         columns={columns} 
         pagination={false} 
         rowKey="productCode" 
+        scroll={{ x: 1200 }}
       />
 
       <div style={{ marginTop: 24, textAlign: 'right' }}>
         <Space orientation="vertical" align="end">
           <Text>合计数量: <Title level={5} style={{ display: 'inline' }}>{order.items?.reduce((acc, i) => acc + (i.quantity || 0), 0)}</Title></Text>
-          <Text>估算总额: <Title level={4} style={{ display: 'inline', color: '#f5222d' }}>￥{(order.items?.reduce((acc, i) => acc + (i.quantity || 0) * (i.price || 0), 0) || 0).toFixed(2)}</Title></Text>
         </Space>
       </div>
     </>
