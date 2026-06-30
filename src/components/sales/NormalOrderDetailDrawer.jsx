@@ -412,6 +412,11 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
                 
                 <Descriptions.Item label="生产备注" span={3}>{activeRecord.productionRemark || '-'}</Descriptions.Item>
                 <Descriptions.Item label="客户备注" span={3}>{activeRecord.customerRemark || '-'}</Descriptions.Item>
+                {activeRecord.status === '已关闭' && (
+                  <Descriptions.Item label="关闭原因" span={3}>
+                    <span className="text-red-500 font-medium">{activeRecord.closeReason || '-'}</span>
+                  </Descriptions.Item>
+                )}
             </Descriptions>
 
             <Divider titlePlacement="left">标品明细</Divider>

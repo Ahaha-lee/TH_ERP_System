@@ -51,6 +51,29 @@ const NormalOrderList = () => {
 
     // UI Visibility States
     const [formModal, setFormModal] = useState({ open: false, record: null });
+    const [closeModal, setCloseModal] = useState({ open: false, record: null });
+    const [closeReasonForm] = Form.useForm();
+
+    const handleManualClose = () => {
+        closeReasonForm.validateFields().then(values => {
+            const updatedRecord = {
+                ...closeModal.record,
+                status: '已关闭',
+                closeReason: values.closeReason
+            };
+            mockData.upsert('normalOrders', updatedRecord);
+            message.success('销售订单已手动关闭');
+            setCloseModal({ open: false, record: null });
+            closeReasonForm.resetFields();
+        }).catch(info => {
+            console.log('Validate Failed:', info);
+        });
+    };
+
+    const handleCloseCancel = () => {
+        setCloseModal({ open: false, record: null });
+        closeReasonForm.resetFields();
+    };
     const [detailDrawer, setDetailDrawer] = useState({ open: false, record: null });
     const [auditDrawer, setAuditDrawer] = useState({ open: false, record: null });
     const [auditModal, setAuditModal] = useState({ open: false, record: null });
@@ -254,11 +277,13 @@ const NormalOrderList = () => {
                             </>
                         )}
                         {status === '已审核' && null}
-                        {status === '已排产' && null}
+                        {status === '已排产' && (
+                            <Button type="link" size="small" danger onClick={() => setCloseModal({ open: true, record })}>手动关闭</Button>
+                        )}
                         {status === '生产中' && (
                             <>
                                 <Button type="link" size="small" onClick={() => setProductionModal({ open: true, record })}>查看生产进度</Button>
-                                <Button type="link" size="small" danger onClick={() => message.info('订单已手动关闭')}>手动关闭</Button>
+                                <Button type="link" size="small" danger onClick={() => setCloseModal({ open: true, record })}>手动关闭</Button>
                             </>
                         )}
                         {status === '已完工' && (
@@ -451,6 +476,29 @@ const NormalOrderList = () => {
                     setDeliveryNoticeModal({ open: false, record: null });
                 }}
             />
+
+            <Modal
+                title="手动关闭销售订单"
+                open={closeModal.open}
+                onOk={handleManualClose}
+                onCancel={handleCloseCancel}
+                okText="确认关闭"
+                cancelText="取消"
+                destroyOnHidden
+            >
+                <div className="py-2">
+                    <p className="text-gray-500 mb-4">订单号: <strong className="text-gray-800">{closeModal.record?.orderNo}</strong></p>
+                    <Form form={closeReasonForm} layout="vertical">
+                        <Form.Item
+                            name="closeReason"
+                            label="关闭原因"
+                            rules={[{ required: true, message: '请填写关闭原因' }]}
+                        >
+                            <Input.TextArea placeholder="请输入关闭订单的原因（必填）" rows={4} maxLength={200} showCount />
+                        </Form.Item>
+                    </Form>
+                </div>
+            </Modal>
 
             {/* New Referencing Drawers */}
             <QuotationDetailDrawer 

@@ -73,7 +73,9 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
                     <Descriptions bordered size="small" column={3}>
                         <Descriptions.Item label="受托订单号">{record.orderNo}</Descriptions.Item>
                         <Descriptions.Item label="来源报价单">{record.quotationNo || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="订单状态"><Tag color="blue">{record.status}</Tag></Descriptions.Item>
+                        <Descriptions.Item label="订单状态">
+                            <Tag color={record.status === '已关闭' ? 'red' : 'blue'}>{record.status}</Tag>
+                        </Descriptions.Item>
                         <Descriptions.Item label="客户">{typeof record.customerName === 'object' ? record.customerName?.name : record.customerName}</Descriptions.Item>
                         <Descriptions.Item label="订单日期">{record.orderDate}</Descriptions.Item>
                         <Descriptions.Item label="业务员">{typeof record.salesperson === 'object' ? record.salesperson?.name : record.salesperson}</Descriptions.Item>
@@ -90,6 +92,11 @@ const TrusteeOrderDetailDrawer = ({ open, record, onClose }) => {
                         </Descriptions.Item>
                         <Descriptions.Item label="生产备注" span={3}>{record.productionRemark || '-'}</Descriptions.Item>
                         <Descriptions.Item label="客户备注" span={3}>{record.customerRemark || '-'}</Descriptions.Item>
+                        {record.status === '已关闭' && (
+                            <Descriptions.Item label="关闭原因" span={3}>
+                                <span className="text-red-500 font-medium">{record.closeReason || '-'}</span>
+                            </Descriptions.Item>
+                        )}
                     </Descriptions>
 
                     <Divider titlePlacement="left">客户来料清单</Divider>

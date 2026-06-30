@@ -53,6 +53,35 @@ const TrusteeOrderList = () => {
     const [productionProgressModal, setProductionProgressModal] = useState({ open: false, record: null });
     const [deliveryProgressModal, setDeliveryProgressModal] = useState({ open: false, record: null });
     const [claimModal, setClaimModal] = useState({ open: false, record: null });
+    const [closeModal, setCloseModal] = useState({ open: false, record: null });
+    const [closeReasonForm] = Form.useForm();
+
+    const handleManualClose = () => {
+        closeReasonForm.validateFields().then(values => {
+            const updatedRecord = {
+                ...closeModal.record,
+                status: '已关闭',
+                closeReason: values.closeReason
+            };
+            // Update in mockTrusteeOrders
+            const idx = mockTrusteeOrders.findIndex(item => item.id === closeModal.record?.id);
+            if (idx !== -1) {
+                mockTrusteeOrders[idx] = updatedRecord;
+            }
+            // Update in local data state
+            setData(data.map(i => i.id === closeModal.record?.id ? updatedRecord : i));
+            message.success('受托加工订单已手动关闭');
+            setCloseModal({ open: false, record: null });
+            closeReasonForm.resetFields();
+        }).catch(info => {
+            console.log('Validate Failed:', info);
+        });
+    };
+
+    const handleCloseCancel = () => {
+        setCloseModal({ open: false, record: null });
+        closeReasonForm.resetFields();
+    };
 
     const handleSearch = (values) => {
         setLoading(true);
@@ -231,6 +260,7 @@ const TrusteeOrderList = () => {
                         <Space size="small">
                             <Button type="link" size="small" onClick={() => setMaterialReceiptModal({ open: true, record })}>查看来料入库进度</Button>
                             <Button type="link" size="small" onClick={() => setProductionProgressModal({ open: true, record })}>查看生产进度</Button>
+                            <Button type="link" size="small" danger onClick={() => setCloseModal({ open: true, record })}>手动关闭</Button>
                         </Space>
                     );
                 }
@@ -377,6 +407,29 @@ const TrusteeOrderList = () => {
                     setAuditModal({ open: false, record: null });
                 }}
             />
+
+            <Modal
+                title="手动关闭受托加工销售订单"
+                open={closeModal.open}
+                onOk={handleManualClose}
+                onCancel={handleCloseCancel}
+                okText="确认关闭"
+                cancelText="取消"
+                destroyOnHidden
+            >
+                <div className="py-2">
+                    <p className="text-gray-500 mb-4">订单号: <strong className="text-gray-800">{closeModal.record?.orderNo}</strong></p>
+                    <Form form={closeReasonForm} layout="vertical">
+                        <Form.Item
+                            name="closeReason"
+                            label="关闭原因"
+                            rules={[{ required: true, message: '请填写关闭原因' }]}
+                        >
+                            <Input.TextArea placeholder="请输入关闭订单的原因（必填）" rows={4} maxLength={200} showCount />
+                        </Form.Item>
+                    </Form>
+                </div>
+            </Modal>
         </div>
     );
 };
