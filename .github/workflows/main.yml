@@ -1,0 +1,36 @@
+name: Build and Deploy
+
+on: [push]
+
+permissions:
+  contents: write
+
+env:
+  APP_BASE: erp2
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Install and Build 🔧
+        run: |
+          npm ci
+          npm run build
+
+      - name: Rewrite asset paths
+        run: |
+          APP_BASE_PATH="/${APP_BASE}"
+
+          find dist -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \) -print0 \
+            | xargs -0 sed -i \
+              -e "s#\"/assets/#\"${APP_BASE_PATH}/assets/#g" \
+              -e "s#'/assets/#'${APP_BASE_PATH}/assets/#g" \
+              -e "s#url(/assets/#url(${APP_BASE_PATH}/assets/#g"
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
