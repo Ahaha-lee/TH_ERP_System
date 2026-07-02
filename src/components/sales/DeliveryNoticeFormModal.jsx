@@ -82,7 +82,20 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
           ...initialData,
           createdAt: dayjs(initialData.createdAt)
         });
-        setItems(initialData.items || []);
+        const mappedItems = (initialData.items || []).map(item => {
+          const stock = item.stock !== undefined ? item.stock : (item.stockQty !== undefined ? item.stockQty : Math.floor(Math.random() * 200) + 50);
+          const allocated = item.allocatedQty !== undefined ? item.allocatedQty : Math.floor(stock * 0.15);
+          const available = item.availableQty !== undefined ? item.availableQty : (stock - allocated);
+          return {
+            ...item,
+            stock,
+            allocatedQty: allocated,
+            availableQty: available,
+            pendingQty: item.pendingQty !== undefined ? item.pendingQty : (item.orderQty || 10),
+            currentQty: item.currentQty !== undefined ? item.currentQty : (item.quantity || 5)
+          };
+        });
+        setItems(mappedItems);
         if (initialData.orderNo) {
           setSelectedOrders([{ orderNo: initialData.orderNo, customerName: initialData.customerName || '未知客户' }]);
         }
@@ -107,20 +120,65 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
 
   const handleSubmit = (submitType) => {
     form.validateFields().then(values => {
-      if (items.length === 0) return message.warning('无法发货：产品明细为空');
-      if (items.every(i => i.currentQty <= 0)) return message.warning('本次发货数量必须大于0');
+      if (items.length === 0) {
+        message.warning('无法发货：产品明细为空');
+        return;
+      }
+
+      // 验证本次发货数量要小于等于库存数量和待发货数量
+      for (const item of items) {
+        const name = item.productName || '产品';
+        const currentQty = Number(item.currentQty);
+        const stock = Number(item.stock || 0);
+        const pendingQty = Number(item.pendingQty || 0);
+
+        if (isNaN(currentQty) || currentQty <= 0) {
+          message.warning(`无法保存或提交：产品【${name}】的本次发货数量必须大于0且为有效数字`);
+          return;
+        }
+
+        if (currentQty > stock) {
+          message.warning(`无法保存或提交：产品【${name}】本次发货数量（${currentQty}）不能大于库存数量（${stock}）`);
+          return;
+        }
+
+        if (currentQty > pendingQty) {
+          message.warning(`无法保存或提交：产品【${name}】本次发货数量（${currentQty}）不能大于待发货数量（${pendingQty}）`);
+          return;
+        }
+      }
+
+      // Resolve settlementMethod and customerName
+      let settlementMethod = initialData?.settlementMethod || '月结';
+      const custName = initialData?.customerName || selectedOrders[0]?.customerName;
+      if (custName) {
+        const cust = customers.find(c => c.name === custName || c.code === custName);
+        if (cust && cust.settlementMethod) {
+          settlementMethod = cust.settlementMethod;
+        }
+      }
+
+      let nextStatus = '仓库审批';
+      let nextApprovalStatus = '审批中';
+
+      if (['现结', '现金'].includes(settlementMethod)) {
+        nextStatus = '财务审批';
+        nextApprovalStatus = '审批中';
+      } else {
+        nextStatus = '仓库审批';
+        nextApprovalStatus = '审批中';
+      }
 
       if (submitType === 'submit') {
-          // Default to 待仓库审批 as there are no customer/payment-based conditional validation requirements
-          const nextStatus = '待仓库审批';
-
           onSuccess({
             ...values,
             createdAt: values.createdAt.format('YYYY-MM-DD'),
+            customerName: custName || '未知客户',
             items,
             status: nextStatus,
-            approvalStatus: '待审批',
+            approvalStatus: nextApprovalStatus,
             auditResult: '-',
+            settlementMethod,
             totalAmount,
             paymentImages: [],
             attachments: attachmentList.map(f => ({ name: f.name, url: f.url || f.thumbUrl || 'file_url', status: 'done' }))
@@ -130,10 +188,12 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
           onSuccess({
             ...values,
             createdAt: values.createdAt.format('YYYY-MM-DD'),
+            customerName: custName || '未知客户',
             items,
             status: '草稿',
-            approvalStatus: '-',
+            approvalStatus: '草稿',
             auditResult: '-',
+            settlementMethod,
             totalAmount,
             paymentImages: [],
             attachments: attachmentList.map(f => ({ name: f.name, url: f.url || f.thumbUrl || 'file_url', status: 'done' }))
@@ -182,6 +242,16 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
     { title: '库存数量', dataIndex: 'stock', width: 90, render: (v) => <Text type="secondary">{v !== undefined ? v : 0}</Text> },
     { title: '可用数量', dataIndex: 'availableQty', width: 90, render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock || 0) * 0.85)}</span> },
     { title: '占用数量', dataIndex: 'allocatedQty', width: 90, render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock || 0) * 0.15)}</span> },
+    { 
+      title: '在制数量', 
+      dataIndex: 'wipQty', 
+      width: 90, 
+      align: 'right',
+      render: (v, rec) => {
+        const val = rec.wipQty ?? (rec.property?.includes('定制') ? 15 : 35);
+        return <span className="font-mono text-gray-500">{val}</span>;
+      }
+    },
     { title: '订单数量', dataIndex: 'orderQty', width: 90 },
     { title: '已发货数量', dataIndex: 'shippedQty', width: 100 },
     { title: '未发货数量', dataIndex: 'pendingQty', width: 100 },
@@ -189,15 +259,17 @@ const DeliveryNoticeFormModal = ({ open, onClose, onSuccess, initialData, initia
       title: '本次发货数量', 
       dataIndex: 'currentQty', 
       width: 120,
-      render: (val, record) => (
-        <InputNumber 
-          min={1} 
-          max={record.pendingQty} 
-          value={val} 
-          style={{ width: '100% '}}
-          onChange={val => setItems(items.map(item => item.id === record.id ? { ...item, currentQty: val } : item))} 
-        />
-      )
+      render: (val, record) => {
+        return (
+          <InputNumber 
+            min={1} 
+            value={val} 
+            style={{ width: '100% '}}
+            status={val > (record.stock || 0) || val > (record.pendingQty || 0) ? 'error' : ''}
+            onChange={val => setItems(items.map(item => item.id === record.id ? { ...item, currentQty: val } : item))} 
+          />
+        );
+      }
     },
     { 
       title: '备注', 

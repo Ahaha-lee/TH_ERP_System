@@ -40,12 +40,16 @@ const InboundOrderList = () => {
       if (['SI-202505090001', 'RI-202505100003'].includes(o.orderNo)) {
         return false;
       }
+      // 隐藏受托入库类型的数据
+      if (o.type === '受托入库') {
+        return false;
+      }
       // 生产入库类型的只有 已入库类型的数据
       if (o.type === '生产入库') {
         return o.status === '已入库' || o.status === '已完成';
       }
-      // 受托入库、退货入库类型的显示 草稿、待审核、已审核、已入库
-      if (['受托入库', '退货入库'].includes(o.type)) {
+      // 退货入库类型的显示 草稿、待审核、已审核、已入库
+      if (o.type === '退货入库') {
         return ['草稿', '待审核', '已审核', '已入库', '已完成'].includes(o.status);
       }
       return true;
@@ -401,7 +405,6 @@ const InboundOrderList = () => {
                   <Option value="采购入库">采购入库</Option>
                   <Option value="生产入库">生产入库</Option>
                   <Option value="退货入库">退货入库</Option>
-                  <Option value="受托入库">受托入库</Option>
                   <Option value="委外入库">委外入库</Option>
                 </Select>
               </Form.Item>

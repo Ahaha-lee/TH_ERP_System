@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Drawer, Tabs, Descriptions, Table, Tag, Divider, Typography } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Drawer, Tabs, Descriptions, Table, Tag, Divider, Typography, Button, Input, Card, message } from 'antd';
 import { formatCurrency } from '../../utils/helpers';
 import dayjs from 'dayjs';
 import { useMockData } from '../../mock';
@@ -8,7 +8,7 @@ import NormalOrderDetailDrawer from './NormalOrderDetailDrawer';
 
 const { Text, Title, Link } = Typography;
 
-const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
+const DeliveryNoticeDetailDrawer = ({ open, notice, onClose, onUpdate }) => {
     const [normalOrders] = useMockData('normalOrders');
     const [orderDetailOpen, setOrderDetailOpen] = useState(false);
     const [activeOrder, setActiveOrder] = useState(null);
@@ -36,6 +36,47 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
 
     if (!notice) return null;
 
+    const isStocking = notice.status === '备货中';
+
+    const handleOutbound = () => {
+        if (!onUpdate) return;
+        const updated = {
+            ...notice,
+            status: '已完成',
+            approvalStatus: '审批通过',
+            outboundOrderNo: `CK-${notice.noticeNo.replace('FH', '')}`
+        };
+        onUpdate(updated);
+        message.success('已确认备货，流转至已完成！');
+    };
+
+    const renderApprovalCard = () => {
+        if (isStocking) {
+            return (
+                <Card 
+                    size="small" 
+                    title="🚚 备货及出库确认" 
+                    className="mb-6 bg-blue-50/50 border border-blue-200 shadow-sm"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <Text type="secondary">当前发货单已由财务和仓库完成审批，现在可以进行备货确认与实际出库发货操作。</Text>
+                        </div>
+                        <Button 
+                            type="primary" 
+                            className="bg-blue-600 hover:bg-blue-500"
+                            onClick={handleOutbound}
+                        >
+                            确认备货并出库
+                        </Button>
+                    </div>
+                </Card>
+            );
+        }
+        
+        return null;
+    };
+
     const basicItems = [
         { label: '发货通知单号', children: notice.noticeNo },
         { 
@@ -48,19 +89,37 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
         },
         { label: '业务员', children: notice.salesperson },
         { 
-            label: '状态', 
+            label: '订单状态', 
             children: (
                 <Tag color={
-                    notice.status === '已完成(备货取消)' ? 'magenta' :
-                    notice.status === '已出库' ? 'purple' :
-                    notice.status === '已审批' ? 'green' : 'blue'
+                    notice.status === '草稿' ? 'default' :
+                    notice.status === '财务审批' ? 'blue' :
+                    notice.status === '仓库审批' ? 'cyan' :
+                    notice.status === '已拒绝' ? 'red' :
+                    notice.status === '备货中' ? 'orange' :
+                    notice.status === '已完成' ? 'green' : 'default'
                 }>
                     {notice.status}
                 </Tag>
             )
         },
+        { 
+            label: '审批状态', 
+            children: (
+                <Tag color={
+                    notice.approvalStatus === '草稿' ? 'default' :
+                    notice.approvalStatus === '审批中' ? 'orange' :
+                    notice.approvalStatus === '审批退回' ? 'warning' :
+                    notice.approvalStatus === '审批拒绝' ? 'error' :
+                    notice.approvalStatus === '审批通过' ? 'success' : 'default'
+                }>
+                    {notice.approvalStatus || '-'}
+                </Tag>
+            )
+        },
+        { label: '结算方式', children: notice.settlementMethod || '月结' },
         { label: '创建时间', children: notice.createdAt },
-        { label: '总金额', children: <Text type="danger" strong>{formatCurrency(notice.totalAmount)}</Text> },
+        { label: '总金额', children: <Text type="danger" strong>{formatCurrency(notice.totalAmount)}</Text>, span: 2 },
         { label: '备注', children: notice.remark || '-', span: 3 },
     ];
 
@@ -93,6 +152,16 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
         { title: '库存数量', dataIndex: 'stock', render: (v) => <Text type="secondary">{v !== undefined ? v : 120}</Text> },
         { title: '可用数量', dataIndex: 'availableQty', render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.85)}</span> },
         { title: '占用数量', dataIndex: 'allocatedQty', render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.15)}</span> },
+        { 
+            title: '在制数量', 
+            dataIndex: 'wipQty', 
+            width: 90, 
+            align: 'right',
+            render: (v, rec) => {
+                const val = rec.wipQty ?? (rec.property?.includes('定制') ? 15 : 35);
+                return <span className="font-mono text-gray-500">{val}</span>;
+            }
+        },
         { title: '订单量', dataIndex: 'orderQty' },
         { 
             title: '已发量', 
@@ -169,6 +238,7 @@ const DeliveryNoticeDetailDrawer = ({ open, notice, onClose }) => {
                     label: '基本信息',
                     children: (
                         <>
+                            {renderApprovalCard()}
                             <Descriptions bordered size="small" items={basicItems} column={3} className="mb-6" />
                             <Title level={5}>发货产品明细</Title>
                             <Table 

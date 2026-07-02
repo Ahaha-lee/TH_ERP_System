@@ -19,12 +19,12 @@ const AfterSaleOrder = () => {
                         },
                         {
                             key: 'exchange',
-                            label: '换货单',
+                            label: <span><span className="text-red-500">（二期）</span>换货单</span>,
                             children: <ExchangeOrderList />,
                         },
                         {
                             key: 'replenish',
-                            label: '补货单',
+                            label: <span><span className="text-red-500">（二期）</span>补货单</span>,
                             children: <ReplenishOrderList />,
                         },
                     ]}

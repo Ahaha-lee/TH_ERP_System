@@ -960,6 +960,16 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
       }
     },
     { 
+      title: '在制数量', 
+      dataIndex: 'wipQty', 
+      width: 80, 
+      align: 'right',
+      render: (v, rec) => {
+        const val = rec.wipQty ?? (rec.id?.startsWith('std_') || rec.id?.startsWith('new') ? 0 : 35);
+        return <span className="font-mono text-gray-500">{val}</span>;
+      }
+    },
+    { 
       title: '标准单价', 
       dataIndex: 'standardPrice', 
       width: 100, 
@@ -1262,6 +1272,16 @@ const QuotationFormModal = ({ open, onCancel, onSave, editingRecord }) => {
         const available = record.availableQty ?? 0;
         const occupied = Math.max(0, stock - available);
         return <span className="font-mono text-amber-600 font-medium">{occupied}</span>;
+      }
+    },
+    { 
+      title: '在制数量', 
+      dataIndex: 'wipQty', 
+      width: 80, 
+      align: 'right',
+      render: (v, rec) => {
+        const val = rec.wipQty ?? (rec.id?.startsWith('cust_') || rec.id?.startsWith('new') ? 0 : 15);
+        return <span className="font-mono text-gray-500">{val}</span>;
       }
     },
     { 

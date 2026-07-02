@@ -124,12 +124,12 @@ const AppContent = () => {
                 {
                   key: 'estimation',
                   icon: <InteractionOutlined />,
-                  label: <Link to="/estimation">报价预估</Link>,
+                  label: <Link to="/estimation"><span className="text-red-500">（二期）</span>报价预估</Link>,
                 },
                 {
                   key: 'size-pricing-rule',
                   icon: <ToolOutlined />,
-                  label: <Link to="/size-pricing-rule">阶梯式计价规则</Link>,
+                  label: <Link to="/size-pricing-rule"><span className="text-red-500">（二期）</span>阶梯式计价规则</Link>,
                 },
                 {
                   key: 'delivery-notice',
@@ -139,7 +139,7 @@ const AppContent = () => {
                 {
                   key: 'unshipped-dashboard',
                   icon: <DatabaseOutlined />,
-                  label: <Link to="/unshipped-dashboard">未发货产品追踪看板</Link>,
+                  label: <Link to="/unshipped-dashboard"><span className="text-red-500">（二期）</span>未发货产品追踪看板</Link>,
                 },
                 {
                   key: 'normal-order',
@@ -154,7 +154,7 @@ const AppContent = () => {
                 {
                   key: 'consignment',
                   icon: <ToolOutlined />,
-                  label: <Link to="/sales/consignment">受托加工销售订单</Link>,
+                  label: <Link to="/sales/consignment"><span className="text-red-500">（二期）</span>受托加工销售单</Link>,
                 },
                 {
                   key: 'sales-target-plan',
@@ -228,7 +228,7 @@ const AppContent = () => {
              selectedKey === 'recharge-ledger' ? '充值订单台账' :
              selectedKey === 'normal-order' ? '普通销售订单' :
              selectedKey === 'after-sale' ? '售后销售订单' :
-             selectedKey === 'consignment' ? '受托加工销售订单' :
+             selectedKey === 'consignment' ? '受托加工销售单' :
              selectedKey === 'sales-target-plan' ? '销售年度目标计划表' :
              selectedKey === 'sales-target-stats' ? '销售目标完成统计表' :
              selectedKey === 'estimation' ? '报价预估' :

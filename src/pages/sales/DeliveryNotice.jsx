@@ -101,63 +101,60 @@ const DeliveryNotice = () => {
     { title: '创建日期', dataIndex: 'createdAt', width: 120 },
     { title: '业务员', dataIndex: 'salesperson', width: 100 },
     { 
-      title: '审批结果', 
-      dataIndex: 'auditResult',
-      width: 100,
-      render: (res) => {
-          if (res === '通过' || res === '审核通过') {
-              return <Text>{res.replace('通过', '')}</Text>;
-          }
-          return res && res !== '-' ? <Tag color="red">{res}</Tag> : '-';
+      title: '审批状态', 
+      dataIndex: 'approvalStatus', 
+      width: 120,
+      render: (val, record) => {
+        const approvalStatusMap = {
+          '草稿': { text: '草稿', color: 'default' },
+          '审批中': { text: '审批中', color: 'orange' },
+          '审批退回': { text: '审批退回', color: 'warning' },
+          '审批拒绝': { text: '审批拒绝', color: 'error' },
+          '审批通过': { text: '审批通过', color: 'success' },
+        };
+        const currentApproval = val || record.approvalStatus || '草稿';
+        const config = approvalStatusMap[currentApproval] || { text: currentApproval, color: 'default' };
+        return <Tag color={config.color}>{config.text}</Tag>;
       }
     },
     { 
-      title: '状态', 
+      title: '订单状态', 
       dataIndex: 'status', 
       width: 120,
-      render: (val, record) => {
-        let displayVal = val;
-        // “审批拒绝”对用的状态为“已审批”
-        if (record.auditResult === '审核拒绝' || record.auditResult === '审批拒绝') {
-          displayVal = '已审批';
-        }
-
-        if (displayVal === '已审批') displayVal = '已出库';
-
-        const statusConfig = {
-          '草稿': { color: 'default' },
-          '待财务审批': { color: 'orange' },
-          '待仓库审批': { color: 'blue' },
-          '待出库': { color: 'cyan' },
-          '已审批': { color: 'green' },
-          '已出库': { color: 'purple' },
-          '已完成(备货取消)': { color: 'magenta' }
+      render: (val) => {
+        const statusMap = {
+          '草稿': { text: '草稿', color: 'default' },
+          '财务审批': { text: '财务审批', color: 'blue' },
+          '仓库审批': { text: '仓库审批', color: 'cyan' },
+          '已拒绝': { text: '已拒绝', color: 'red' },
+          '备货中': { text: '备货中', color: 'orange' },
+          '已完成': { text: '已完成', color: 'green' },
         };
-        const config = statusConfig[displayVal] || { color: 'default' };
-        return <Tag color={config.color}>{displayVal}</Tag>;
+        const currentStatus = val || '草稿';
+        const config = statusMap[currentStatus] || { text: currentStatus, color: 'default' };
+        return <Tag color={config.color}>{config.text}</Tag>;
       }
     },
     { 
       title: '操作', 
       key: 'action', 
-      width: 220, 
+      width: 160, 
       fixed: 'right',
       render: (_, record) => {
-          const { status, settlementMethod, auditResult } = record;
+          const { status, approvalStatus } = record;
+          const isDraft = status === '草稿';
+          const isReturned = (status === '财务审批' || status === '仓库审批') && approvalStatus === '审批退回';
           return (
             <Space size="small">
               <Button type="link" size="small" onClick={() => setDetailDrawer({ open: true, data: record })}>查看</Button>
-              {(status === '草稿' || (status.includes('待') && (auditResult === '审核拒绝' || auditResult === '审批拒绝'))) && (
+              {isDraft && (
                 <>
                   <Button type="link" size="small" onClick={() => setFormModal({ open: true, data: record })}>编辑</Button>
                   <Button type="link" danger size="small" onClick={() => handleDelete(record.id)}>删除</Button>
                 </>
               )}
-              {status === '待财务审批' && (
-                  <Button type="link" size="small" onClick={() => { setActiveRecord(record); setFinanceAuditOpen(true); }}>财务审批</Button>
-              )}
-              {status === '待仓库审批' && (
-                  <Button type="link" size="small" onClick={() => { setActiveRecord(record); setWarehouseAuditOpen(true); }}>仓库审批</Button>
+              {isReturned && (
+                <Button type="link" size="small" onClick={() => setFormModal({ open: true, data: record })}>编辑</Button>
               )}
             </Space>
           );
@@ -165,23 +162,7 @@ const DeliveryNotice = () => {
     }
   ];
 
-  const handleSubmit = (record) => {
-      const { settlementMethod } = record;
-      let nextStatus = '';
-      if (['现结', '现金'].includes(settlementMethod)) {
-          nextStatus = '待财务审批';
-      } else {
-          nextStatus = '待仓库审批';
-      }
-      
-      // Perform validations (mocking the checks in the modal as well)
-      if (settlementMethod === '预存' && record.totalAmount > 1000000) { // Just a mock fail
-          return message.error('余额不足，仅可保存草稿');
-      }
 
-      setDataSource(dataSource.map(o => o.id === record.id ? { ...o, status: nextStatus, approvalStatus: '待审核', auditResult: '-' } : o));
-      message.success(`已提交，当前状态: ${nextStatus}`);
-  };
 
   const handleSearch = (values) => {
       setLoading(true);
@@ -237,9 +218,9 @@ const DeliveryNotice = () => {
             <DatePicker className="w-full" />
           </Col>
           <Col span={6}>
-            <div className="text-xs text-gray-500 mb-1">状态</div>
+            <div className="text-xs text-gray-500 mb-1">订单状态</div>
             <Select placeholder="选择状态" className="w-full" allowClear>
-              {['草稿', '待财务审批', '待仓库审批', '已出库'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
+              {['草稿', '财务审批', '仓库审批', '已拒绝', '备货中', '已完成'].map(s => <Select.Option key={s} value={s}>{s}</Select.Option>)}
             </Select>
           </Col>
           <Col span={6}>
@@ -295,8 +276,11 @@ const DeliveryNotice = () => {
 
       <DeliveryNoticeDetailDrawer 
         open={detailDrawer.open} 
-        notice={detailDrawer.data}
+        notice={dataSource.find(item => item.id === detailDrawer.data?.id)}
         onClose={() => setDetailDrawer({ open: false, data: null })}
+        onUpdate={(updatedRecord) => {
+            setDataSource(dataSource.map(o => o.id === updatedRecord.id ? updatedRecord : o));
+        }}
       />
 
       <NormalOrderDetailDrawer 
@@ -307,29 +291,10 @@ const DeliveryNotice = () => {
 
       <AuditDetailDrawer 
         open={auditDrawer.open} 
-        record={auditDrawer.record} 
+        record={dataSource.find(item => item.id === auditDrawer.record?.id)} 
         onClose={() => setAuditDrawer({ open: false, record: null })} 
-      />
-
-      <FinanceAuditModal
-        open={financeAuditOpen}
-        record={activeRecord}
-        onCancel={() => { setFinanceAuditOpen(false); setActiveRecord(null); }}
-        onSuccess={(audited) => {
-            setDataSource(dataSource.map(o => o.id === audited.id ? audited : o));
-            setFinanceAuditOpen(false);
-            setActiveRecord(null);
-        }}
-      />
-
-      <WarehouseAuditModal
-        open={warehouseAuditOpen}
-        record={activeRecord}
-        onCancel={() => { setWarehouseAuditOpen(false); setActiveRecord(null); }}
-        onSuccess={(audited) => {
-            setDataSource(dataSource.map(o => o.id === audited.id ? audited : o));
-            setWarehouseAuditOpen(false);
-            setActiveRecord(null);
+        onUpdate={(updatedRecord) => {
+            setDataSource(dataSource.map(o => o.id === updatedRecord.id ? updatedRecord : o));
         }}
       />
     </div>

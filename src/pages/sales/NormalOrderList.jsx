@@ -47,7 +47,7 @@ const NormalOrderList = () => {
     const [displayData, setDisplayData] = useState(null);
     const [loading, setLoading] = useState(false);
     
-    const data = (displayData || allData).filter(item => item.status !== '完成');
+    const data = displayData || allData;
 
     // UI Visibility States
     const [formModal, setFormModal] = useState({ open: false, record: null });
@@ -74,6 +74,31 @@ const NormalOrderList = () => {
         setCloseModal({ open: false, record: null });
         closeReasonForm.resetFields();
     };
+
+    const [completeModal, setCompleteModal] = useState({ open: false, record: null });
+    const [completeReasonForm] = Form.useForm();
+
+    const handleManualComplete = () => {
+        completeReasonForm.validateFields().then(values => {
+            const updatedRecord = {
+                ...completeModal.record,
+                status: '已完成',
+                completeReason: values.completeReason
+            };
+            mockData.upsert('normalOrders', updatedRecord);
+            message.success('销售订单已手动完结');
+            setCompleteModal({ open: false, record: null });
+            completeReasonForm.resetFields();
+        }).catch(info => {
+            console.log('Validate Failed:', info);
+        });
+    };
+
+    const handleCompleteCancel = () => {
+        setCompleteModal({ open: false, record: null });
+        completeReasonForm.resetFields();
+    };
+
     const [detailDrawer, setDetailDrawer] = useState({ open: false, record: null });
     const [auditDrawer, setAuditDrawer] = useState({ open: false, record: null });
     const [auditModal, setAuditModal] = useState({ open: false, record: null });
@@ -290,6 +315,7 @@ const NormalOrderList = () => {
                             <>
                                 <Button type="link" size="small" onClick={() => setProductionModal({ open: true, record })}>查看生产进度</Button>
                                 <Button type="link" size="small" onClick={() => setDeliveryNoticeModal({ open: true, record })}>发起发货通知</Button>
+                                <Button type="link" size="small" onClick={() => setCompleteModal({ open: true, record })}>手动完结</Button>
                             </>
                         )}
                         {status === '发货中' && (
@@ -297,6 +323,7 @@ const NormalOrderList = () => {
                                 <Button type="link" size="small" onClick={() => setProductionModal({ open: true, record })}>查看生产进度</Button>
                                 <Button type="link" size="small" onClick={() => setDeliveryModal({ open: true, record })}>查看发货进度</Button>
                                 <Button type="link" size="small" onClick={() => setDeliveryNoticeModal({ open: true, record })}>发起发货通知</Button>
+                                <Button type="link" size="small" onClick={() => setCompleteModal({ open: true, record })}>手动完结</Button>
                             </>
                         )}
                         {(status === '完成' || status === '已完成') && (
@@ -495,6 +522,29 @@ const NormalOrderList = () => {
                             rules={[{ required: true, message: '请填写关闭原因' }]}
                         >
                             <Input.TextArea placeholder="请输入关闭订单的原因（必填）" rows={4} maxLength={200} showCount />
+                        </Form.Item>
+                    </Form>
+                </div>
+            </Modal>
+
+            <Modal
+                title="手动完结销售订单"
+                open={completeModal.open}
+                onOk={handleManualComplete}
+                onCancel={handleCompleteCancel}
+                okText="确认完结"
+                cancelText="取消"
+                destroyOnHidden
+            >
+                <div className="py-2">
+                    <p className="text-gray-500 mb-4">订单号: <strong className="text-gray-800">{completeModal.record?.orderNo}</strong></p>
+                    <Form form={completeReasonForm} layout="vertical">
+                        <Form.Item
+                            name="completeReason"
+                            label="完结原因"
+                            rules={[{ required: true, message: '请填写完结原因' }]}
+                        >
+                            <Input.TextArea placeholder="请输入完结销售订单的原因（必填）" rows={4} maxLength={200} showCount />
                         </Form.Item>
                     </Form>
                 </div>

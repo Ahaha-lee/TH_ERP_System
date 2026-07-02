@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Drawer, 
     Table, 
@@ -9,15 +9,114 @@ import {
     Divider, 
     Row, 
     Col, 
-    Button 
+    Button,
+    Card,
+    Input,
+    message
 } from 'antd';
 import { PaperClipOutlined } from '@ant-design/icons';
 import { formatCurrency } from '../../utils/helpers';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-const AuditDetailDrawer = ({ open, record, onClose }) => {
+const AuditDetailDrawer = ({ open, record, onClose, onUpdate }) => {
+    const [remark, setRemark] = useState('');
+
+    useEffect(() => {
+        if (record) {
+            setRemark('');
+        }
+    }, [record?.id]);
+
     if (!record) return null;
+
+    const isFinanceAudit = record.status === '财务审批' && record.approvalStatus === '审批中';
+    const isWarehouseAudit = record.status === '仓库审批' && record.approvalStatus === '审批中';
+
+    const handleAction = (actionType) => {
+        if (!onUpdate) return;
+
+        let nextStatus = record.status;
+        let nextApprovalStatus = record.approvalStatus;
+        let auditResultStr = '-';
+        let actionText = '';
+        const currentTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
+        const updatePayload = { ...record };
+
+        if (isFinanceAudit) {
+            if (actionType === 'pass') {
+                nextStatus = '仓库审批';
+                nextApprovalStatus = '审批中';
+                auditResultStr = '-';
+                actionText = '财务审批通过';
+                updatePayload.financeAuditResult = '通过';
+                updatePayload.financeAuditor = '财务审批员';
+                updatePayload.financeAuditTime = currentTime;
+                updatePayload.financeAuditRemark = remark || '同意发货';
+            } else if (actionType === 'return') {
+                nextStatus = '财务审批';
+                nextApprovalStatus = '审批退回';
+                auditResultStr = '退回';
+                actionText = '财务审批退回';
+                updatePayload.financeAuditResult = '退回';
+                updatePayload.financeAuditor = '财务审批员';
+                updatePayload.financeAuditTime = currentTime;
+                updatePayload.financeAuditRemark = remark || '核对不通过，退回修改';
+            } else if (actionType === 'reject') {
+                nextStatus = '已拒绝';
+                nextApprovalStatus = '审批拒绝';
+                auditResultStr = '拒绝';
+                actionText = '财务审批拒绝';
+                updatePayload.financeAuditResult = '拒绝';
+                updatePayload.financeAuditor = '财务审批员';
+                updatePayload.financeAuditTime = currentTime;
+                updatePayload.financeAuditRemark = remark || '审批拒绝';
+            }
+        } else if (isWarehouseAudit) {
+            if (actionType === 'pass') {
+                nextStatus = '备货中';
+                nextApprovalStatus = '审批通过';
+                auditResultStr = '通过';
+                actionText = '仓库审批通过';
+                updatePayload.warehouseAuditResult = '通过';
+                updatePayload.warehouseAuditor = '仓库审批员';
+                updatePayload.warehouseAuditTime = currentTime;
+                updatePayload.warehouseAuditRemark = remark || '物位核对无误，同意发货';
+            } else if (actionType === 'return') {
+                nextStatus = '仓库审批';
+                nextApprovalStatus = '审批退回';
+                auditResultStr = '退回';
+                actionText = '仓库审批退回';
+                updatePayload.warehouseAuditResult = '退回';
+                updatePayload.warehouseAuditor = '仓库审批员';
+                updatePayload.warehouseAuditTime = currentTime;
+                updatePayload.warehouseAuditRemark = remark || '库存不足，退回修改';
+            } else if (actionType === 'reject') {
+                nextStatus = '已拒绝';
+                nextApprovalStatus = '审批拒绝';
+                auditResultStr = '拒绝';
+                actionText = '仓库审批拒绝';
+                updatePayload.warehouseAuditResult = '拒绝';
+                updatePayload.warehouseAuditor = '仓库审批员';
+                updatePayload.warehouseAuditTime = currentTime;
+                updatePayload.warehouseAuditRemark = remark || '审批拒绝';
+            }
+        }
+
+        const finalUpdated = {
+            ...updatePayload,
+            status: nextStatus,
+            approvalStatus: nextApprovalStatus,
+            auditResult: auditResultStr,
+        };
+
+        onUpdate(finalUpdated);
+        message.success(`${actionText}成功`);
+        setRemark('');
+        onClose();
+    };
 
     // Detect if it's a Delivery Notice (has noticeNo)
     const isDeliveryNotice = !!record.noticeNo;
@@ -87,21 +186,82 @@ const AuditDetailDrawer = ({ open, record, onClose }) => {
             { title: '库存数量', dataIndex: 'stock', width: 95, align: 'right', render: (v) => <Text type="secondary">{v !== undefined ? v : 120}</Text> },
             { title: '可用数量', dataIndex: 'availableQty', width: 95, align: 'right', render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.85)}</span> },
             { title: '占用数量', dataIndex: 'allocatedQty', width: 95, align: 'right', render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.15)}</span> },
+            { 
+                title: '在制数量', 
+                dataIndex: 'wipQty', 
+                width: 95, 
+                align: 'right',
+                render: (v, rec) => {
+                    const val = rec.wipQty ?? (rec.property?.includes('定制') ? 15 : 35);
+                    return <span className="font-mono text-gray-500">{val}</span>;
+                }
+            },
             { title: '订单数量', dataIndex: 'orderQty', width: 90, align: 'right' },
             { title: '已发货数量', dataIndex: 'shippedQty', width: 100, align: 'right' },
             { title: '本次发货数量', dataIndex: 'currentQty', width: 110, align: 'right', render: (v) => <Text strong type="danger">{v}</Text> },
         ];
 
         // Removed warehouse columns as requested
+        const renderApprovalCard = () => {
+            if (isFinanceAudit || isWarehouseAudit) {
+                return (
+                    <Card 
+                        size="small" 
+                        title={isFinanceAudit ? "💼 财务审批处理" : "📦 仓库审批处理"} 
+                        className="mb-4 bg-amber-50/50 border border-amber-200 shadow-sm"
+                    >
+                        <div className="space-y-4">
+                            <div>
+                                <div className="text-xs text-gray-500 mb-1">审批意见 / 原因：</div>
+                                <Input.TextArea 
+                                    placeholder="请输入审批意见、退回原因或拒绝原因" 
+                                    rows={2} 
+                                    value={remark}
+                                    onChange={(e) => setRemark(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3">
+                                <Button 
+                                    type="primary" 
+                                    className="bg-emerald-600 hover:bg-emerald-500 border-none text-white"
+                                    onClick={() => handleAction('pass')}
+                                >
+                                    审批通过
+                                </Button>
+                                <Button 
+                                    danger 
+                                    onClick={() => handleAction('return')}
+                                >
+                                    审批退回
+                                </Button>
+                                <Button 
+                                    danger 
+                                    type="primary"
+                                    onClick={() => handleAction('reject')}
+                                >
+                                    审批拒绝
+                                </Button>
+                            </div>
+                        </div>
+                    </Card>
+                );
+            }
+            return null;
+        };
+
         return (
             <div className="space-y-6">
+                {renderApprovalCard()}
                 <Descriptions bordered size="small" column={2} styles={{ label: { width: 120 } }}>
                     <Descriptions.Item label="单据号">{record.noticeNo}</Descriptions.Item>
                     <Descriptions.Item label="状态">
                         <Tag color={
-                            record.status === '待财务审批' ? 'orange' :
-                            record.status === '待仓库审批' ? 'blue' :
-                            record.status === '已审批' ? 'green' : 'default'
+                            record.status === '草稿' ? 'default' :
+                            record.status === '财务审批' ? 'blue' :
+                            record.status === '仓库审批' ? 'cyan' :
+                            record.status === '已拒绝' ? 'red' :
+                            record.status === '备货中' ? 'orange' :
+                            record.status === '已完成' ? 'green' : 'default'
                         }>{record.status}</Tag>
                     </Descriptions.Item>
                     <Descriptions.Item label="客户名称">{record.customerName}</Descriptions.Item>

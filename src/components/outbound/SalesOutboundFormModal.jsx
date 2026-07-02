@@ -37,8 +37,14 @@ const SalesOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
           ...editingRecord,
           createDate: dayjs(editingRecord.createDate || editingRecord.outboundDate),
         });
-        setItems(editingRecord.items || []);
-      } else { form.setFieldsValue({ orderNo: `ORDER-${Math.floor(Math.random() * 1000).toString().padStart(4, '0')}`,
+        const loadedItems = (editingRecord.items || []).map(item => ({
+          ...item,
+          stock: item.stock !== undefined ? item.stock : (item.stockQty !== undefined ? item.stockQty : 120)
+        }));
+        setItems(loadedItems);
+      } else { 
+        form.setFieldsValue({ 
+          orderNo: `ORDER-${Math.floor(Math.random() * 1000).toString().padStart(4, '0')}`,
           type: '销售出库',
           createDate: dayjs(),
           handler: '管理员'
@@ -57,6 +63,7 @@ const SalesOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
     // Map items from DN
     const newItems = dn.items.map(item => ({
       ...item,
+      stock: item.stock !== undefined ? item.stock : (item.stockQty !== undefined ? item.stockQty : 120),
       outboundQty: item.quantity, // Default to notice quantity
       batchNo: '',
       warehouseName: '',
@@ -74,6 +81,7 @@ const SalesOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
       batchNo: batch.batchNo,
       warehouseName: batch.warehouseName,
       location: batch.location,
+      stock: batch.stockQty,
       outboundQty: Math.min(newItems[index].quantity, batch.stockQty)
     };
     setItems(newItems);
@@ -91,14 +99,20 @@ const SalesOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
         message.warning('请至少添加一行物料明细');
         return;
       }
-      // Check quantities
+      // Check quantities and stock
       for (let i = 0; i < items.length; i++) {
-        if (!items[i].outboundQty || items[i].outboundQty <= 0) {
+        const item = items[i];
+        if (!item.outboundQty || item.outboundQty <= 0) {
           message.warning(`第 ${i+1} 行出库数量必须大于0`);
           return;
         }
-        if (items[i].outboundQty > items[i].quantity) {
+        if (item.outboundQty > item.quantity) {
           message.warning(`第 ${i+1} 行出库数量不能超过通知数量`);
+          return;
+        }
+        const currentStock = item.stock !== undefined ? item.stock : 120;
+        if (item.outboundQty > currentStock) {
+          message.warning(`无法保存或提交：第 ${i+1} 行产品【${item.productName}】本次出库数量（${item.outboundQty}）不能大于可用库存数量（${currentStock}）`);
           return;
         }
       }
@@ -115,18 +129,30 @@ const SalesOutboundFormModal = ({ open, onCancel, onSave, editingRecord }) => {
     { title: '单位', dataIndex: 'unit', width: 80 },
     { title: '通知数量', dataIndex: 'quantity', width: 100, align: 'right' },
     { 
+      title: '可用库存', 
+      dataIndex: 'stock', 
+      width: 100, 
+      align: 'right',
+      render: (v) => <span className="text-emerald-600 font-semibold font-mono">{v !== undefined ? v : 120}</span> 
+    },
+    { 
       title: '本次出库数量', 
       dataIndex: 'outboundQty', 
       width: 120,
-      render: (val, record, i) => (
-        <InputNumber 
-          min={0.01} 
-          max={record.quantity} 
-          value={val} 
-          onChange={(v) => updateItem(i, 'outboundQty', v)} 
-          style={{ width: '100%' }}
-        />
-      )
+      render: (val, record, i) => {
+        const currentStock = record.stock !== undefined ? record.stock : 120;
+        const maxLimit = Math.min(record.quantity || 0, currentStock);
+        return (
+          <InputNumber 
+            min={0.01} 
+            max={maxLimit > 0 ? maxLimit : 1} 
+            value={val} 
+            status={val > currentStock ? 'error' : ''}
+            onChange={(v) => updateItem(i, 'outboundQty', v)} 
+            style={{ width: '100%' }}
+          />
+        );
+      }
     },
     { 
       title: '批次号', 

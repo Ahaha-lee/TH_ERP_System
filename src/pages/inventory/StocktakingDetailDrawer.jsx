@@ -77,7 +77,7 @@ const StocktakingDetailDrawer = ({ open, onClose, taskNo }) => {
             <Descriptions.Item label="实际开始">{task.actualStartDate || '-'}</Descriptions.Item>
             <Descriptions.Item label="完成时间">{task.actualEndDate || task.finishDate || '-'}</Descriptions.Item>
             <Descriptions.Item label="基准时间">{task.baseTime || '-'}</Descriptions.Item>
-            <Descriptions.Item label="创建人">{task.creator}</Descriptions.Item>
+            <Descriptions.Item label="创建人" span={2}>{task.creator}</Descriptions.Item>
             <Descriptions.Item label="备注" span={2}>{task.remark || '-'}</Descriptions.Item>
           </Descriptions>
         </Space>

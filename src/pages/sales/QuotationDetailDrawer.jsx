@@ -109,6 +109,16 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
       }
     },
     { 
+      title: '在制数量', 
+      dataIndex: 'wipQty', 
+      width: 80, 
+      align: 'right',
+      render: (v, rec) => {
+        const val = rec.wipQty ?? (rec.id?.startsWith('std_') || rec.id?.startsWith('new') ? 0 : 35);
+        return <span className="font-mono text-gray-500">{val}</span>;
+      }
+    },
+    { 
       title: '标准单价', 
       dataIndex: 'standardPrice', 
       width: 100, 
@@ -224,6 +234,16 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
       }
     },
     { 
+      title: '在制数量', 
+      dataIndex: 'wipQty', 
+      width: 80, 
+      align: 'right',
+      render: (v, rec) => {
+        const val = rec.wipQty ?? (rec.id?.startsWith('cust_') || rec.id?.startsWith('new') ? 0 : 15);
+        return <span className="font-mono text-gray-500">{val}</span>;
+      }
+    },
+    { 
       title: '标准单价', 
       dataIndex: 'standardPrice', 
       width: 100, 
@@ -287,16 +307,16 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
         </Descriptions.Item>
         <Descriptions.Item label="客户类型">{quotation.customerType || '-'}</Descriptions.Item>
         <Descriptions.Item label="来源预估单号">{quotation.sourceEstimationNo || '-'}</Descriptions.Item>
+        <Descriptions.Item label="税率">{quotation.taxRate || '13%'}</Descriptions.Item>
         <Descriptions.Item label="客户名称" span={2}>{quotation.customerName}</Descriptions.Item>
         <Descriptions.Item label="是否存在定制产品">
           <Tag color={quotation.items?.some(i => i.isCustom) ? "warning" : "default"}>
             {quotation.items?.some(i => i.isCustom) ? '是' : '否'}
           </Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="税率">{quotation.taxRate || '13%'}</Descriptions.Item>
         <Descriptions.Item label="是否收取定金">{quotation.isDeposit ? '是' : '否'}</Descriptions.Item>
         {quotation.isDeposit && (
-          <Descriptions.Item label="定金比例">{((quotation.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
+          <Descriptions.Item label="定金比例" span={2}>{((quotation.depositRate || 0) * 100).toFixed(0)}%</Descriptions.Item>
         )}
         {quotation.isDeposit && (
           <Descriptions.Item label="定金应收" span={3}>
@@ -304,7 +324,7 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
           </Descriptions.Item>
         )}
         {!quotation.isDeposit && (
-          <Descriptions.Item label="结算方式" span={1}>全额支付</Descriptions.Item>
+          <Descriptions.Item label="结算方式" span={2}>全额支付</Descriptions.Item>
         )}
         <Descriptions.Item label="报价标题" span={3}>{quotation.title || '-'}</Descriptions.Item>
         <Descriptions.Item label="收款信息" span={3}>{quotation.paymentInfo || '-'}</Descriptions.Item>

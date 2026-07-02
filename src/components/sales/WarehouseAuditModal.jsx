@@ -63,6 +63,16 @@ const WarehouseAuditModal = ({ open, record, onCancel, onSuccess }) => {
         { title: '库存数量', dataIndex: 'stock', width: 90, align: 'right', render: (v) => <Text type="secondary">{v !== undefined ? v : 120}</Text> },
         { title: '可用数量', dataIndex: 'availableQty', width: 90, align: 'right', render: (v, rec) => <span className="text-emerald-600 font-semibold">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.85)}</span> },
         { title: '占用数量', dataIndex: 'allocatedQty', width: 90, align: 'right', render: (v, rec) => <span className="text-amber-600">{v !== undefined ? v : Math.floor((rec.stock !== undefined ? rec.stock : 120) * 0.15)}</span> },
+        { 
+            title: '在制数量', 
+            dataIndex: 'wipQty', 
+            width: 90, 
+            align: 'right',
+            render: (v, rec) => {
+                const val = rec.wipQty ?? (rec.property?.includes('定制') ? 15 : 35);
+                return <span className="font-mono text-gray-500">{val}</span>;
+            }
+        },
         { title: '本次发货数量', dataIndex: 'currentQty', width: 110, align: 'right', render: (v) => <Text strong style={{ color: '#1677ff' }}>{v}</Text> },
     ];
 

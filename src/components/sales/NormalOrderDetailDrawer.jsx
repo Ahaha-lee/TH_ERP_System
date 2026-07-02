@@ -160,6 +160,16 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
           }
         },
         { 
+          title: '在制数量', 
+          dataIndex: 'wipQty', 
+          width: 80, 
+          align: 'right',
+          render: (v, rec) => {
+            const val = rec.wipQty ?? (rec.id?.startsWith('NEW_') ? 0 : 35);
+            return <span className="font-mono text-gray-500">{val}</span>;
+          }
+        },
+        { 
           title: '标准单价', 
           dataIndex: 'standardPrice', 
           width: 100, 
@@ -252,6 +262,16 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
             const stock = rec.stockQty ?? 120;
             const avail = rec.availableQty ?? 100;
             const val = rec.occupiedQty ?? (stock - avail >= 0 ? stock - avail : 20);
+            return <span className="font-mono text-gray-500">{val}</span>;
+          }
+        },
+        { 
+          title: '在制数量', 
+          dataIndex: 'wipQty', 
+          width: 80, 
+          align: 'right',
+          render: (v, rec) => {
+            const val = rec.wipQty ?? (rec.id?.startsWith('NEW_') ? 0 : 15);
             return <span className="font-mono text-gray-500">{val}</span>;
           }
         },
@@ -415,6 +435,11 @@ const NormalOrderDetailDrawer = ({ open, order, record, onClose }) => {
                 {activeRecord.status === '已关闭' && (
                   <Descriptions.Item label="关闭原因" span={3}>
                     <span className="text-red-500 font-medium">{activeRecord.closeReason || '-'}</span>
+                  </Descriptions.Item>
+                )}
+                {(activeRecord.status === '已完成' || activeRecord.completeReason) && (
+                  <Descriptions.Item label="完结原因" span={3}>
+                    <span className="text-amber-600 font-medium">{activeRecord.completeReason || '-'}</span>
                   </Descriptions.Item>
                 )}
             </Descriptions>

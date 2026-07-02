@@ -906,6 +906,16 @@ const NormalOrderFormModal = ({ open, record, initialData, onCancel, onClose, on
             }
         },
         { 
+            title: '在制数量', 
+            dataIndex: 'wipQty', 
+            width: 90, 
+            align: 'right',
+            render: (val, record) => {
+                const wip = val ?? (record.id?.startsWith('NEW_') ? 0 : 35);
+                return <span className="font-mono text-gray-500">{wip}</span>;
+            }
+        },
+        { 
             title: '标准单价', 
             dataIndex: 'standardPrice', 
             width: 100, 
@@ -1209,6 +1219,16 @@ const NormalOrderFormModal = ({ open, record, initialData, onCancel, onClose, on
                 const avail = record.availableQty ?? 0;
                 const occup = val ?? (stock - avail >= 0 ? stock - avail : 0);
                 return <span className="font-mono text-gray-500">{occup}</span>;
+            }
+        },
+        { 
+            title: '在制数量', 
+            dataIndex: 'wipQty', 
+            width: 90, 
+            align: 'right',
+            render: (val, record) => {
+                const wip = val ?? (record.id?.startsWith('NEW_') ? 0 : 15);
+                return <span className="font-mono text-gray-500">{wip}</span>;
             }
         },
         { 
