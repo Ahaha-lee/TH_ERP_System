@@ -235,6 +235,12 @@ const QuotationList = () => {
       width: 100,
       render: (status) => statusTags[status] || <Tag>{status}</Tag>
     },
+    {
+      title: '关联销售单',
+      dataIndex: 'relatedOrderNo',
+      width: 140,
+      render: (val) => val ? <Text type="success" strong>{val}</Text> : '-'
+    },
     { 
       title: '操作',
       key: 'action',

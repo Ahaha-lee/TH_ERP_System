@@ -54,15 +54,6 @@ const QuotationDetailDrawer = ({ open, quotation, onClose }) => {
         </Tag>
       </div>
 
-      {quotation.status === '已转订单' && (
-        <div className="bg-blue-50 border border-blue-100 p-3 rounded mb-4 flex items-center">
-          <Text strong className="mr-2">关联销售订单号：</Text>
-          <Link onClick={() => alert(`跳转到销售订单：${quotation.relatedOrderNo}`)}>
-            {quotation.relatedOrderNo}
-          </Link>
-        </div>
-      )}
-
       <Descriptions bordered column={3} size="small">
         <Descriptions.Item label="客户名称" span={2}>{quotation.customerName}</Descriptions.Item>
         <Descriptions.Item label="客户类型">{quotation.customerType}</Descriptions.Item>
@@ -77,6 +68,11 @@ const QuotationDetailDrawer = ({ open, quotation, onClose }) => {
           </Descriptions.Item>
         )}
         <Descriptions.Item label="备注" span={quotation.isDeposit ? 1 : 2}>{quotation.remark || '-'}</Descriptions.Item>
+        <Descriptions.Item label="关联销售订单" span={3}>
+          {quotation.relatedOrderNo ? (
+            <Text type="success" style={{ fontWeight: 'bold' }}>{quotation.relatedOrderNo}</Text>
+          ) : '-'}
+        </Descriptions.Item>
       </Descriptions>
 
       <Divider titlePlacement="left" plain>产品明细</Divider>

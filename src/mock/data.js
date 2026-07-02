@@ -203,20 +203,7 @@ const initialState = {
         salesperson: '管理员',
         items: [{ id: 'oi9', productName: '办公家具套件', quantity: 1, price: 30000, amount: 30000 }]
     },
-    {
-        id: 'ord8',
-        orderNo: 'SO20250501008',
-        customerId: 'cus7',
-        customerName: '理想中心',
-        orderDate: '2025-05-01',
-        totalAmount: 10000,
-        paidAmount: 10000,
-        deposit: 2000,
-        status: '完成',
-        paymentStatus: '已结清',
-        salesperson: '张经理',
-        items: [{ id: 'oi10', productName: '装饰画', quantity: 50, price: 200, amount: 10000 }]
-    },
+
     {
         id: 'ord9',
         orderNo: 'SO20250501009',
@@ -1352,7 +1339,7 @@ const initialState = {
       region: '华南大区',
       expectDate: '2025-05-02',
       items: [
-        { id: 'dni1', productName: '皮沙发', spec: '真皮/咖啡色', quantity: 2, currentQty: 2, price: 9500, amount: 19000 }
+        { id: 'dni1', productCode: 'PROD001', productName: '皮沙发', spec: '真皮/咖啡色', quantity: 2, currentQty: 2, price: 9500, amount: 19000, stock: 40, allocatedQty: 10, availableQty: 28 }
       ]
     },
     { 
@@ -1794,7 +1781,10 @@ export const auditLogs = [
 ];
 export const salesOrders = initialState.normalOrders;
 export const salespersonHistory = [
+  { id: 'sph_cus1_1', customerId: 'cus1', oldSalesperson: '无', newSalesperson: '赵销售', operator: '管理员', createdAt: '2025-01-10 10:00:00' },
+  { id: 'sph_cus1_2', customerId: 'cus1', oldSalesperson: '赵销售', newSalesperson: '张经理', operator: '管理员', createdAt: '2025-03-15 14:30:00' },
   { id: 'sph1', customerId: 'cus1', oldSalesperson: '张经理', newSalesperson: '管理员', operator: '管理员', createdAt: '2025-05-01 09:00:00' },
+  { id: 'sph_cus6_1', customerId: 'cus6', oldSalesperson: '无', newSalesperson: '李仓库员', operator: '管理员', createdAt: '2025-02-01 08:30:00' },
   { id: 'sph2', customerId: 'cus6', oldSalesperson: '李仓库员', newSalesperson: '管理员', operator: '管理员', createdAt: '2025-04-15 10:00:00' }
 ];
 export const consignmentOrders = initialState.consignmentOrders;

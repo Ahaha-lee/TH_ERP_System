@@ -220,7 +220,6 @@ const SalesOrderNormal = () => {
                         {status === '草稿' && (
                             <>
                                 <Button type="link" size="small" onClick={() => setFormModal({ open: true, record })}>编辑</Button>
-                                <Button type="link" size="small" onClick={() => setAuditModal({ open: true, record })}>审核</Button>
                                 <Button type="link" size="small" danger onClick={() => handleDelete(record)}>删除</Button>
                             </>
                         )}

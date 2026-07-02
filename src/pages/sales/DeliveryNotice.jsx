@@ -34,6 +34,8 @@ const { Link, Text } = Typography;
 const DeliveryNotice = () => {
   const [dataSource, setDataSource] = useMockData('deliveryNotices');
   const [normalOrders] = useMockData('normalOrders');
+  const [products] = useMockData('products');
+  const [simulateInventoryChange, setSimulateInventoryChange] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formModal, setFormModal] = useState({ open: false, data: null });
   const [detailDrawer, setDetailDrawer] = useState({ open: false, data: null });
@@ -44,6 +46,67 @@ const DeliveryNotice = () => {
   
   const [orderDrawerOpen, setOrderDrawerOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const checkInventoryChanged = (record) => {
+    if (!record || record.status !== '草稿' || !record.items) return false;
+    if (simulateInventoryChange) return true;
+    
+    for (const item of record.items) {
+      const liveProd = (products || []).find(p => p.code === item.productCode || p.name === item.productName);
+      if (liveProd) {
+        const savedStock = item.stock;
+        const savedAllocated = item.allocatedQty;
+        const savedAvailable = item.availableQty;
+
+        const liveStock = liveProd.stock;
+        const liveAllocated = liveProd.occupiedQty !== undefined ? liveProd.occupiedQty : liveProd.allocatedQty;
+        const liveAvailable = liveProd.availableQty;
+
+        if (savedStock !== undefined && savedStock !== liveStock) {
+          return true;
+        }
+        if (savedAllocated !== undefined && savedAllocated !== liveAllocated) {
+          return true;
+        }
+        if (savedAvailable !== undefined && savedAvailable !== liveAvailable) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const handleEditClick = (record) => {
+    if (checkInventoryChanged(record)) {
+      message.warning('物料库存有更新，请重新编辑发货通知单数据');
+    }
+    setFormModal({ open: true, data: record });
+  };
+
+  const handleSubmitAudit = (record) => {
+    if (checkInventoryChanged(record)) {
+      message.warning('物料库存有更新，请重新编辑发货通知单数据');
+      return;
+    }
+
+    let settlementMethod = record.settlementMethod || '月结';
+    let nextStatus = '仓库审批';
+    let nextApprovalStatus = '审批中';
+
+    if (['现结', '现金'].includes(settlementMethod)) {
+      nextStatus = '财务审批';
+    }
+
+    const updatedRecord = {
+      ...record,
+      status: nextStatus,
+      approvalStatus: nextApprovalStatus,
+      auditResult: '-'
+    };
+
+    setDataSource(dataSource.map(o => o.id === record.id ? updatedRecord : o));
+    message.success('审核提交成功');
+  };
 
   const columns = [
     { title: '序号', render: (_, __, index) => index + 1, width: 60, fixed: 'left' },
@@ -138,7 +201,7 @@ const DeliveryNotice = () => {
     { 
       title: '操作', 
       key: 'action', 
-      width: 160, 
+      width: 240, 
       fixed: 'right',
       render: (_, record) => {
           const { status, approvalStatus } = record;
@@ -149,12 +212,13 @@ const DeliveryNotice = () => {
               <Button type="link" size="small" onClick={() => setDetailDrawer({ open: true, data: record })}>查看</Button>
               {isDraft && (
                 <>
-                  <Button type="link" size="small" onClick={() => setFormModal({ open: true, data: record })}>编辑</Button>
+                  <Button type="link" size="small" onClick={() => handleEditClick(record)}>编辑</Button>
+                  <Button type="link" size="small" onClick={() => handleSubmitAudit(record)}>提交审核</Button>
                   <Button type="link" danger size="small" onClick={() => handleDelete(record.id)}>删除</Button>
                 </>
               )}
               {isReturned && (
-                <Button type="link" size="small" onClick={() => setFormModal({ open: true, data: record })}>编辑</Button>
+                <Button type="link" size="small" onClick={() => handleEditClick(record)}>编辑</Button>
               )}
             </Space>
           );
@@ -242,7 +306,21 @@ const DeliveryNotice = () => {
         size="small" 
         title="发货通知单列表" 
         className="shadow-sm"
-        extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setFormModal({ open: true, data: null })}>新增</Button>}
+        extra={
+          <Space>
+            <Button 
+              type={simulateInventoryChange ? "primary" : "default"} 
+              danger={simulateInventoryChange}
+              onClick={() => {
+                setSimulateInventoryChange(!simulateInventoryChange);
+                message.info(simulateInventoryChange ? '已关闭库存变更模拟' : '已开启库存变更模拟：可用库存、占用数量、库存数量已被标记为发生变化');
+              }}
+            >
+              {simulateInventoryChange ? "🔴 模拟库存已变更" : "模拟库存变更"}
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormModal({ open: true, data: null })}>新增</Button>
+          </Space>
+        }
       >
         <Table 
           columns={columns} 

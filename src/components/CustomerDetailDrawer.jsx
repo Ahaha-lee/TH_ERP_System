@@ -67,6 +67,16 @@ const CustomerDetailDrawer = ({ open, customer, onClose }) => {
   const consumptionRecordsFiltered = mockConsumptionRecords.filter(r => r.customerId === customer.id);
   const auditLogs = mockAuditLogs.filter(l => l.customerId === customer.id);
   const salespersonHistory = mockSalespersonHistory.filter(h => h.customerId === customer.id);
+  const sortedHistoryAsc = [...salespersonHistory].sort((a, b) => {
+    return dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix();
+  });
+  const salespersonHistoryDisplay = sortedHistoryAsc.map((item, idx) => {
+    const nextItem = sortedHistoryAsc[idx + 1];
+    return {
+      ...item,
+      expiryTime: nextItem ? nextItem.createdAt : '-'
+    };
+  });
 
   const accumulatedRecharge = rechargeOrders.reduce((sum, r) => sum + (r.status === '生效' ? r.amount : 0), 0);
   const accumulatedConsumption = consumptionRecordsFiltered.reduce((sum, r) => sum + r.amount, 0);
@@ -257,12 +267,13 @@ const CustomerDetailDrawer = ({ open, customer, onClose }) => {
       label: '业务员历史',
       children: (
         <Table 
-          dataSource={salespersonHistory}
+          dataSource={salespersonHistoryDisplay}
           columns={[
             { title: '原业务员', dataIndex: 'oldSalesperson', render: text => text || '-' },
             { title: '新业务员', dataIndex: 'newSalesperson', render: text => text || '-' },
             { title: '操作人', dataIndex: 'operator' },
-            { title: '创建时间', dataIndex: 'createdAt' },
+            { title: '创建（生效）时间', dataIndex: 'createdAt' },
+            { title: '失效时间', dataIndex: 'expiryTime' },
           ]}
           size="small"
           rowKey={(record) => record?.id || record?.key || record?.operator + record?.createdAt}

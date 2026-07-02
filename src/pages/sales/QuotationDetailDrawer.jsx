@@ -329,11 +329,11 @@ const QuotationDetailDrawer = ({ open, onClose, quotationNo }) => {
         <Descriptions.Item label="报价标题" span={3}>{quotation.title || '-'}</Descriptions.Item>
         <Descriptions.Item label="收款信息" span={3}>{quotation.paymentInfo || '-'}</Descriptions.Item>
         <Descriptions.Item label="备注" span={3}>{quotation.remark || '-'}</Descriptions.Item>
-        {quotation.relatedOrderNo && (
-          <Descriptions.Item label="关联销售订单" span={3}>
+        <Descriptions.Item label="关联销售订单" span={3}>
+          {quotation.relatedOrderNo ? (
             <Text type="success" style={{ fontWeight: 'bold' }}>{quotation.relatedOrderNo}</Text>
-          </Descriptions.Item>
-        )}
+          ) : '-'}
+        </Descriptions.Item>
       </Descriptions>
  
       <Divider titlePlacement="left" style={{ margin: '16px 0 8px 0' }}>标品明细</Divider>

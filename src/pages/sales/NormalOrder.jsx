@@ -172,7 +172,6 @@ const NormalOrder = () => {
             {status === '草稿' && (
               <>
                 <Link onClick={() => setFormModal({ open: true, data: record })}>编辑</Link>
-                <Link onClick={() => setAuditModal({ open: true, record: record })}>审核</Link>
                 <Link danger onClick={() => handleDelete(record.id)}>删除</Link>
               </>
             )}
